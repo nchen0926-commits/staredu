@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Youtube, Download, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 export default function Footer() {
@@ -13,13 +13,25 @@ export default function Footer() {
               引領孩子開啟智慧理財與數位素養的第一步。透過生活化情境、趣味實作營隊與互動學習體驗，建立正確金錢觀念與未來競爭力。
             </p>
             <div className="flex space-x-4 pt-2">
-              <a href="#" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
+              <a 
+                href="https://www.facebook.com/groups/963798131355327" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                aria-label="Facebook 社團"
+              >
                 <Facebook className="w-4 h-4" />
               </a>
               <a href="#" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="#" className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
+              <a 
+                href="https://www.youtube.com/@richfromthestart" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                aria-label="YouTube 頻道"
+              >
                 <Youtube className="w-4 h-4" />
               </a>
             </div>
@@ -32,15 +44,6 @@ export default function Footer() {
               <li><Link to="/physical-courses" className="hover:text-amber-400 transition-colors">實體營隊介紹</Link></li>
               <li><Link to="/online-courses" className="hover:text-amber-400 transition-colors">線上課程訂閱</Link></li>
               <li><Link to="/admin" className="hover:text-amber-400 transition-colors">後台管理</Link></li>
-              <li>
-                <a 
-                  href="/api/download-zip" 
-                  download="staredu-source.zip"
-                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors flex items-center gap-1.5 mt-3"
-                >
-                  <Download className="h-4 w-4" /> 下載專案程式碼 (.zip)
-                </a>
-              </li>
             </ul>
           </div>
 
@@ -49,7 +52,7 @@ export default function Footer() {
             <ul className="space-y-2.5 font-medium">
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>contact@staredu.tw</span>
+                <span>contact@e-staredu.com</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-amber-400 shrink-0" />
