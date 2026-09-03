@@ -1,48 +1,82 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 70" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
   <defs>
-    <linearGradient id="bodyGradSvg" x1="0%" y1="100%" x2="70%" y2="0%">
-      <stop offset="0%" stop-color="#4F46E5" />
-      <stop offset="35%" stop-color="#2563EB" />
-      <stop offset="70%" stop-color="#0284C7" />
-      <stop offset="100%" stop-color="#00D2FF" />
+    <!-- Figure Body Gradient: Vibrant Cyan-Blue to Rich Royal Blue -->
+    <linearGradient id="bodyGrad" x1="85%" y1="15%" x2="25%" y2="85%">
+      <stop offset="0%" stop-color="#00A2EA" />
+      <stop offset="45%" stop-color="#007FD9" />
+      <stop offset="100%" stop-color="#005BAC" />
     </linearGradient>
-    <linearGradient id="headGradSvg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#38BDF8" />
-      <stop offset="100%" stop-color="#2563EB" />
+
+    <!-- Head Gradient: Bright Cyan-Blue to Deep Sky Blue -->
+    <linearGradient id="headGrad" x1="25%" y1="10%" x2="75%" y2="90%">
+      <stop offset="0%" stop-color="#1EAEF1" />
+      <stop offset="50%" stop-color="#0095E5" />
+      <stop offset="100%" stop-color="#006BB8" />
     </linearGradient>
-    <linearGradient id="starGradSvg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FDE047" />
-      <stop offset="50%" stop-color="#F59E0B" />
-      <stop offset="100%" stop-color="#EA580C" />
+
+    <!-- Star Gradient: Luminous Gold to Warm Amber Orange -->
+    <linearGradient id="starGrad" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#FFE144" />
+      <stop offset="45%" stop-color="#FBA419" />
+      <stop offset="100%" stop-color="#EB6100" />
     </linearGradient>
-    <filter id="starGlowSvg" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#F59E0B" floodOpacity="0.4" />
+
+    <!-- Warm Star Glow/Shadow -->
+    <filter id="starGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#F59E0B" flood-opacity="0.35" />
     </filter>
   </defs>
 
-  <!-- Left Icon (Enlarged 100%) -->
-  <g transform="translate(-10, -3) scale(0.95)">
+  <!-- Clean Pure White Background -->
+  <rect width="1000" height="1000" fill="#FFFFFF" />
+
+  <!-- ICON GROUP -->
+  <g transform="translate(10, 5)">
     <!-- Head Circle -->
-    <circle cx="47" cy="30" r="11" fill="url(#headGradSvg)" />
-    <!-- Dynamic Torso -->
+    <circle cx="468" cy="292" r="54" fill="url(#headGrad)" />
+
+    <!-- Dynamic Figure (Arms & Sweeping Torso) -->
     <path
-      d="M 24 64 C 29 55 35 44 46 39 C 55 35 63 26 66 23 C 65 30 63 39 58 48 C 50 60 40 65 24 64 Z"
-      fill="url(#bodyGradSvg)"
+      d="M 318 362
+         C 355 367, 405 372, 458 372
+         C 512 372, 570 332, 626 270
+         C 610 375, 560 480, 480 560
+         C 435 605, 375 625, 318 606
+         C 382 550, 422 480, 396 425
+         C 383 398, 350 380, 318 362 Z"
+      fill="url(#bodyGrad)"
     />
-    <path
-      d="M 24 64 C 36 65 47 58 55 49 C 62 40 64 30 66 23 C 68 20 64 22 61 25 C 50 35 40 46 32 55 C 27 59 25 62 24 64 Z"
-      fill="#38BDF8"
-      opacity="0.6"
-    />
-    <!-- Star -->
-    <g transform="translate(68, 20) rotate(12)" filter="url(#starGlowSvg)">
+
+    <!-- Reaching 5-Pointed Star -->
+    <g transform="translate(686, 192) rotate(14)" filter="url(#starGlow)">
       <polygon
-        points="0,-15 4.5,-4.5 15.5,-4 7,4 10,15 0,8.5 -10,15 -7,4 -15.5,-4 -4.5,-4.5"
-        fill="url(#starGradSvg)"
+        points="0,-72 21,-22 75,-22 33,12 49,64 0,33 -49,64 -33,12 -75,-22 -21,-22"
+        fill="url(#starGrad)"
       />
     </g>
   </g>
 
-  <!-- Right Text (No English) -->
-  <text x="76" y="44" font-family="'Noto Sans TC', sans-serif" font-size="26" font-weight="900" fill="#0F172A">小管家兒童理財</text>
+  <!-- Chinese Brand Name -->
+  <text
+    x="500"
+    y="758"
+    text-anchor="middle"
+    font-family="'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif"
+    font-size="78"
+    font-weight="900"
+    fill="#005BAC"
+    letter-spacing="5"
+  >小管家兒童理財</text>
+
+  <!-- English Subtitle -->
+  <text
+    x="500"
+    y="845"
+    text-anchor="middle"
+    font-family="'Montserrat', 'Nunito', 'Segoe UI', Arial, sans-serif"
+    font-size="38"
+    font-weight="700"
+    fill="#005BAC"
+    letter-spacing="2.5"
+  >Start Smart with Money</text>
 </svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="290 100 480 530" width="480" height="530" fill="none">
+  <defs>
+    <linearGradient id="bodyGradIcon" x1="85%" y1="15%" x2="25%" y2="85%">
+      <stop offset="0%" stop-color="#00A2EA" />
+      <stop offset="45%" stop-color="#007FD9" />
+      <stop offset="100%" stop-color="#005BAC" />
+    </linearGradient>
+    <linearGradient id="headGradIcon" x1="25%" y1="10%" x2="75%" y2="90%">
+      <stop offset="0%" stop-color="#1EAEF1" />
+      <stop offset="50%" stop-color="#0095E5" />
+      <stop offset="100%" stop-color="#006BB8" />
+    </linearGradient>
+    <linearGradient id="starGradIcon" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#FFE144" />
+      <stop offset="45%" stop-color="#FBA419" />
+      <stop offset="100%" stop-color="#EB6100" />
+    </linearGradient>
+    <filter id="starGlowIcon" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#F59E0B" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <g transform="translate(10, 5)">
+    <!-- Head Circle -->
+    <circle cx="468" cy="292" r="54" fill="url(#headGradIcon)" />
+
+    <!-- Dynamic Torso and Arms -->
+    <path
+      d="M 318 362
+         C 355 367, 405 372, 458 372
+         C 512 372, 570 332, 626 270
+         C 610 375, 560 480, 480 560
+         C 435 605, 375 625, 318 606
+         C 382 550, 422 480, 396 425
+         C 383 398, 350 380, 318 362 Z"
+      fill="url(#bodyGradIcon)"
+    />
+
+    <!-- Star -->
+    <g transform="translate(686, 192) rotate(14)" filter="url(#starGlowIcon)">
+      <polygon
+        points="0,-72 21,-22 75,-22 33,12 49,64 0,33 -49,64 -33,12 -75,-22 -21,-22"
+        fill="url(#starGradIcon)"
+      />
+    </g>
+  </g>
+</svg>
