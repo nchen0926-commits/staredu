@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { AppConfig, BannerItem, Course } from '../types';
-import { Plus, Trash2, Save, Image as ImageIcon, BookOpen, Tv, Layers, X, CheckCircle, AlertCircle, LogOut, Calendar, Info, Download, ExternalLink, Link2 } from 'lucide-react';
+import { Plus, Trash2, Save, Image as ImageIcon, BookOpen, Tv, Layers, X, CheckCircle, AlertCircle, LogOut, Calendar, Info, ExternalLink, Link2 } from 'lucide-react';
 import { formatImageUrl } from '../utils/imageUtils';
 import BrandLogo from '../components/BrandLogo';
+import Seo from '../components/Seo';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const [config, setConfig] = useState<{
     homeBanners: BannerItem[];
@@ -30,10 +33,11 @@ export default function Admin() {
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    const auth = sessionStorage.getItem('staredu_admin_auth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
+    fetch('/api/admin/session')
+      .then((res) => res.json())
+      .then((data) => setIsAuthenticated(Boolean(data?.authenticated)))
+      .catch(() => setIsAuthenticated(false))
+      .finally(() => setCheckingSession(false));
   }, []);
 
   useEffect(() => {
@@ -83,21 +87,39 @@ export default function Admin() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Default admin pin/password is admin888
-    if (password === 'admin888' || password === 'admin') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('staredu_admin_auth', 'true');
-      setAuthError('');
-    } else {
-      setAuthError('密碼錯誤，請重新輸入 (預設密碼為 admin888)');
+    setIsLoggingIn(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        setIsAuthenticated(true);
+        setPassword('');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setAuthError(errData.error || '密碼錯誤，請重新輸入');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setAuthError('登入時發生網路錯誤，請稍後再試');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('staredu_admin_auth');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setIsAuthenticated(false);
+    }
   };
 
   const handleSaveConfig = async () => {
@@ -130,6 +152,9 @@ export default function Admin() {
       if (res.ok) {
         showToast('首頁橫幅與前往連結已成功儲存！');
         await fetchData();
+      } else if (res.status === 401) {
+        setIsAuthenticated(false);
+        showToast('登入已過期，請重新登入', 'error');
       } else {
         const errData = await res.json().catch(() => ({}));
         showToast(errData.error || '儲存失敗，請重試', 'error');
@@ -217,6 +242,9 @@ export default function Admin() {
         setEditingCourse(null);
         setTagInput('');
         await fetchData();
+      } else if (res.status === 401) {
+        setIsAuthenticated(false);
+        showToast('登入已過期，請重新登入', 'error');
       } else {
         const errData = await res.json().catch(() => ({}));
         showToast(errData.error || '儲存課程失敗', 'error');
@@ -237,6 +265,9 @@ export default function Admin() {
       if (res.ok) {
         showToast('課程已刪除');
         await fetchData();
+      } else if (res.status === 401) {
+        setIsAuthenticated(false);
+        showToast('登入已過期，請重新登入', 'error');
       } else {
         const errData = await res.json().catch(() => ({}));
         showToast(errData.error || '刪除失敗', 'error');
@@ -273,9 +304,14 @@ export default function Admin() {
     setIsModalOpen(true);
   };
 
+  if (checkingSession) {
+    return <div className="min-h-[75vh]" />;
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
+        <Seo title="後台管理" description="小管家兒童理財後台管理系統" noindex />
         <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-slate-100 shadow-xl space-y-6">
           <div className="text-center space-y-3">
             <div className="flex justify-center">
@@ -292,7 +328,7 @@ export default function Admin() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="預設密碼：admin888"
+                placeholder="請輸入管理員密碼"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                 required
               />
@@ -307,9 +343,10 @@ export default function Admin() {
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/20"
+              disabled={isLoggingIn}
+              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-95 disabled:opacity-50 disabled:pointer-events-none text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/20"
             >
-              進入管理後台
+              {isLoggingIn ? '登入中...' : '進入管理後台'}
             </button>
           </form>
         </div>
@@ -322,6 +359,7 @@ export default function Admin() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <Seo title="後台管理" description="小管家兒童理財後台管理系統" noindex />
       {/* Toast Notification */}
       {toastMessage && (
         <div className={`fixed top-24 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-xl shadow-lg text-sm font-bold text-white animate-in slide-in-from-top duration-300 ${
@@ -343,13 +381,6 @@ export default function Admin() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <a
-            href="/api/download-zip"
-            download="staredu-source.zip"
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" /> 打包下載程式碼 (.zip)
-          </a>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 hover:text-red-600 border border-slate-200 rounded-lg hover:border-red-200 transition-colors"

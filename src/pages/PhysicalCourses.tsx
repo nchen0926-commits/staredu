@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Course, AppConfig } from '../types';
 import CourseCard from '../components/CourseCard';
+import Seo from '../components/Seo';
 import { formatImageUrl } from '../utils/imageUtils';
 import { Users, Filter } from 'lucide-react';
 
@@ -34,17 +35,23 @@ export default function PhysicalCourses() {
 
   return (
     <div className="space-y-12 pb-20">
+      <Seo
+        title="實體營隊 / 課程"
+        description="小管家兒童理財實體營隊與週末工作坊，小班雙師制教學，透過情境模擬與實作，帶孩子建立正確金錢觀念。"
+      />
       {/* Top Banner */}
       <div className="relative aspect-21/9 md:aspect-24/9 max-h-[360px] w-full overflow-hidden bg-slate-900 shadow-md">
         <img
           src={formatImageUrl(bannerImg)}
-          alt="實體營隊 Banner"
+          alt="小管家兒童理財實體營隊課程橫幅"
           className="w-full h-full object-cover object-center"
         />
       </div>
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">實體營隊 / 課程</h1>
+
         {/* Category Filter */}
         <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mr-2">

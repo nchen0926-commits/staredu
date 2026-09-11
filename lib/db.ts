@@ -1,0 +1,179 @@
+import { createClient } from "@supabase/supabase-js";
+
+export interface Course {
+  id: string;
+  type: "physical" | "online";
+  title: string;
+  category: string;
+  price: number;
+  description: string;
+  image: string;
+  tags: string[];
+  location: string;
+  duration: string;
+  details: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface BannerItem {
+  image: string;
+  linkUrl?: string;
+}
+
+export interface SiteConfig {
+  homeBanners: BannerItem[];
+  physicalBanner: string;
+  onlineBanner: string;
+}
+
+function getClient() {
+  const url = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) {
+    throw new Error(
+      "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY are not set. Configure them as environment variables."
+    );
+  }
+  // Service role key bypasses RLS — this client must only ever run server-side.
+  return createClient(url, serviceRoleKey, { auth: { persistSession: false } });
+}
+
+type CourseRow = {
+  id: string;
+  type: "physical" | "online";
+  title: string;
+  category: string;
+  price: number;
+  description: string;
+  image: string;
+  tags: string[];
+  location: string;
+  duration: string;
+  details: string;
+  start_date: string;
+  end_date: string;
+};
+
+function rowToCourse(row: CourseRow): Course {
+  return {
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    category: row.category,
+    price: row.price,
+    description: row.description,
+    image: row.image,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    location: row.location,
+    duration: row.duration,
+    details: row.details,
+    startDate: row.start_date,
+    endDate: row.end_date,
+  };
+}
+
+export async function listCourses(type?: string): Promise<Course[]> {
+  const client = getClient();
+  let query = client.from("courses").select("*").order("created_at", { ascending: true });
+  if (type) query = query.eq("type", type);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return (data as CourseRow[]).map(rowToCourse);
+}
+
+export async function getCourse(id: string): Promise<Course | null> {
+  const client = getClient();
+  const { data, error } = await client.from("courses").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? rowToCourse(data as CourseRow) : null;
+}
+
+export async function createCourse(input: Omit<Course, "id"> & { id?: string }): Promise<Course> {
+  const client = getClient();
+  const id = input.id || `${input.type === "physical" ? "phy" : "on"}-${Date.now()}`;
+  const { data, error } = await client
+    .from("courses")
+    .insert({
+      id,
+      type: input.type,
+      title: input.title,
+      category: input.category,
+      price: input.price,
+      description: input.description,
+      image: input.image,
+      tags: input.tags,
+      location: input.location,
+      duration: input.duration,
+      details: input.details,
+      start_date: input.startDate,
+      end_date: input.endDate,
+    })
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return rowToCourse(data as CourseRow);
+}
+
+export async function updateCourse(id: string, patch: Partial<Course>): Promise<Course | null> {
+  const client = getClient();
+  const dbPatch: Partial<CourseRow> = {};
+  if (patch.type !== undefined) dbPatch.type = patch.type;
+  if (patch.title !== undefined) dbPatch.title = patch.title;
+  if (patch.category !== undefined) dbPatch.category = patch.category;
+  if (patch.price !== undefined) dbPatch.price = patch.price;
+  if (patch.description !== undefined) dbPatch.description = patch.description;
+  if (patch.image !== undefined) dbPatch.image = patch.image;
+  if (patch.tags !== undefined) dbPatch.tags = patch.tags;
+  if (patch.location !== undefined) dbPatch.location = patch.location;
+  if (patch.duration !== undefined) dbPatch.duration = patch.duration;
+  if (patch.details !== undefined) dbPatch.details = patch.details;
+  if (patch.startDate !== undefined) dbPatch.start_date = patch.startDate;
+  if (patch.endDate !== undefined) dbPatch.end_date = patch.endDate;
+
+  const { data, error } = await client
+    .from("courses")
+    .update(dbPatch)
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? rowToCourse(data as CourseRow) : null;
+}
+
+export async function deleteCourse(id: string): Promise<Course | null> {
+  const client = getClient();
+  const { data, error } = await client.from("courses").delete().eq("id", id).select("*").maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? rowToCourse(data as CourseRow) : null;
+}
+
+export async function getConfig(): Promise<SiteConfig> {
+  const client = getClient();
+  const { data, error } = await client
+    .from("site_config")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) {
+    return { homeBanners: [], physicalBanner: "", onlineBanner: "" };
+  }
+  return {
+    homeBanners: Array.isArray(data.home_banners) ? data.home_banners : [],
+    physicalBanner: data.physical_banner || "",
+    onlineBanner: data.online_banner || "",
+  };
+}
+
+export async function saveConfig(patch: Partial<SiteConfig>): Promise<SiteConfig> {
+  const client = getClient();
+  const dbPatch: Record<string, unknown> = { id: 1, updated_at: new Date().toISOString() };
+  if (patch.homeBanners !== undefined) dbPatch.home_banners = patch.homeBanners;
+  if (patch.physicalBanner !== undefined) dbPatch.physical_banner = patch.physicalBanner;
+  if (patch.onlineBanner !== undefined) dbPatch.online_banner = patch.onlineBanner;
+
+  const { error } = await client.from("site_config").upsert(dbPatch, { onConflict: "id" });
+  if (error) throw new Error(error.message);
+  return getConfig();
+}

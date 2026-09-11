@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Course, AppConfig } from '../types';
 import CourseCard from '../components/CourseCard';
+import Seo from '../components/Seo';
 import { formatImageUrl } from '../utils/imageUtils';
 import { Users, MonitorPlay, ChevronLeft, ChevronRight, Award, ShieldCheck, HeartHandshake, Lightbulb } from 'lucide-react';
 
@@ -46,6 +47,11 @@ export default function Home() {
 
   return (
     <div className="space-y-16 pb-20">
+      <Seo
+        title="首頁"
+        description="小管家兒童理財提供兒童理財教育實體營隊、週末工作坊與線上訂閱課程，透過生活化情境與實作，培養孩子的金錢觀念與理財素養。"
+      />
+      <h1 className="sr-only">小管家兒童理財：兒童理財教育實體營隊與線上訂閱課程</h1>
       {/* Hero Carousel */}
       <div className="relative w-full aspect-21/9 md:aspect-24/9 max-h-[520px] overflow-hidden bg-slate-900 shadow-lg">
         {banners.map((banner, idx) => {
@@ -55,7 +61,7 @@ export default function Home() {
           const imageContent = (
             <img
               src={formatImageUrl(banner.image)}
-              alt={`Banner ${idx + 1}`}
+              alt={`小管家兒童理財首頁宣傳橫幅 ${idx + 1}`}
               className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-[1.01]"
             />
           );
