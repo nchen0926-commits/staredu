@@ -41,6 +41,15 @@ create policy "Public read access" on public.courses for select using (true);
 drop policy if exists "Public read access" on public.site_config;
 create policy "Public read access" on public.site_config for select using (true);
 
+-- New tables don't automatically grant table-level access to the API
+-- roles (this is separate from RLS above) — without this you'll get
+-- "permission denied for table courses" even with service_role.
+grant usage on schema public to anon, authenticated, service_role;
+grant select on public.courses to anon, authenticated, service_role;
+grant select on public.site_config to anon, authenticated, service_role;
+grant insert, update, delete on public.courses to service_role;
+grant insert, update, delete on public.site_config to service_role;
+
 -- Seed data (safe to re-run: upserts by primary key).
 insert into public.courses (id, type, title, category, price, description, image, tags, location, duration, details, start_date, end_date)
 values
