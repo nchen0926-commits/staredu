@@ -30,10 +30,15 @@ export interface AppConfig {
 
 export interface Article {
   id: string;
+  slug: string;
   title: string;
   summary: string;
+  seoDescription: string;
+  author: string;
   coverImage: string;
   body: string;
   published: boolean;
   publishedAt: string;
+  updatedAt: string;
+  viewCount?: number;
 }

@@ -127,23 +127,38 @@ export function createApiRouter(): express.Router {
 
   // --- Articles ---
 
-  const cleanArticle = (input: any) => {
+  const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  const BOT_AGENT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i;
+
+  // Returns the cleaned article, or a message describing what is wrong.
+  const parseArticle = (input: any): db.ArticleInput | string => {
+    const title = String(input?.title ?? "").trim().slice(0, 200);
+    if (!title) return "請填寫文章標題";
+
+    const slug = String(input?.slug ?? "").trim().toLowerCase();
+    if (slug && (slug.length > 80 || !SLUG_PATTERN.test(slug) || slug.startsWith("art-"))) {
+      return "網址名稱只能用英文小寫、數字和連字號（-），例如 kids-money-tips，而且不能以 art- 開頭";
+    }
+
     const parsed = new Date(input?.publishedAt);
     return {
-      title: String(input?.title ?? "").trim().slice(0, 200),
+      title,
+      slug,
       summary: String(input?.summary ?? "").trim().slice(0, 500),
+      seoDescription: String(input?.seoDescription ?? "").trim().slice(0, 300),
+      author: String(input?.author ?? "").trim().slice(0, 60),
       coverImage: safeUrl(String(input?.coverImage ?? "")),
-      body: String(input?.body ?? "").slice(0, 50000),
+      body: String(input?.body ?? "").slice(0, 200000),
       published: Boolean(input?.published),
       publishedAt: Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString(),
     };
   };
 
-  // Public list: published only, without the (large) body text.
+  // Public list: only articles that are live (published and their time has come), no body text.
   router.get("/articles", async (req, res) => {
     try {
       const articles = await db.listArticles(true);
-      res.json(articles.map(({ body, ...rest }) => rest));
+      res.json(articles.map(({ body, viewCount, ...rest }) => rest));
     } catch (err) {
       // Keep the public page working (empty) if the table isn't set up yet.
       console.error("Load articles error:", err);
@@ -151,17 +166,35 @@ export function createApiRouter(): express.Router {
     }
   });
 
-  router.get("/articles/:id", async (req, res) => {
+  router.get("/articles/:key", async (req, res) => {
     try {
-      const article = await db.getArticle(req.params.id);
-      // Drafts are only visible to a logged-in admin (for previewing).
-      if (!article || (!article.published && !isAdmin(req))) {
+      const article = await db.getArticleByKey(req.params.key);
+      const admin = isAdmin(req);
+      // Drafts and not-yet-due articles are only visible to a logged-in admin (for previewing).
+      if (!article || (!db.isArticleLive(article) && !admin)) {
         return res.status(404).json({ error: "找不到這篇文章" });
       }
-      res.json(article);
+      if (admin) return res.json(article);
+      const { viewCount, ...publicArticle } = article;
+      res.json(publicArticle);
     } catch (err: any) {
       console.error("Load article error:", err);
       res.status(500).json({ error: err?.message || "讀取文章失敗" });
+    }
+  });
+
+  // Counts one view. Ignores the admin previewing, crawlers, and articles that aren't live.
+  router.post("/articles/:key/view", async (req, res) => {
+    try {
+      if (isAdmin(req) || BOT_AGENT.test(String(req.headers["user-agent"] || ""))) {
+        return res.json({ counted: false });
+      }
+      const article = await db.getArticleByKey(req.params.key);
+      if (!article || !db.isArticleLive(article)) return res.json({ counted: false });
+      await db.incrementArticleViews(article.id);
+      res.json({ counted: true });
+    } catch {
+      res.json({ counted: false });
     }
   });
 
@@ -176,8 +209,8 @@ export function createApiRouter(): express.Router {
 
   router.post("/articles", requireAdmin, async (req, res) => {
     try {
-      const input = cleanArticle(req.body);
-      if (!input.title) return res.status(400).json({ error: "請填寫文章標題" });
+      const input = parseArticle(req.body);
+      if (typeof input === "string") return res.status(400).json({ error: input });
       res.json({ success: true, article: await db.createArticle(input) });
     } catch (err: any) {
       console.error("Article create error:", err);
@@ -187,8 +220,8 @@ export function createApiRouter(): express.Router {
 
   router.put("/articles/:id", requireAdmin, async (req, res) => {
     try {
-      const input = cleanArticle(req.body);
-      if (!input.title) return res.status(400).json({ error: "請填寫文章標題" });
+      const input = parseArticle(req.body);
+      if (typeof input === "string") return res.status(400).json({ error: input });
       const article = await db.updateArticle(req.params.id, input);
       if (!article) return res.status(404).json({ error: "找不到這篇文章" });
       res.json({ success: true, article });

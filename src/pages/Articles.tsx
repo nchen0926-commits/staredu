@@ -34,7 +34,7 @@ export default function Articles() {
           {articles.map((article) => (
             <Link
               key={article.id}
-              to={`/articles/${article.id}`}
+              to={`/articles/${article.slug || article.id}`}
               className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               {article.coverImage && (

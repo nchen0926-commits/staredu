@@ -12,6 +12,30 @@
   to = "/.netlify/functions/api/:splat"
   status = 200
 
+# Pages and files that search engines / AI crawlers read are rendered by
+# netlify/functions/seo.ts (real HTML, meta tags, structured data).
+[[redirects]]
+  from = "/articles/:key"
+  to = "/.netlify/functions/seo?route=article"
+  status = 200
+
+[[redirects]]
+  from = "/articles"
+  to = "/.netlify/functions/seo?route=articles"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/.netlify/functions/seo?route=sitemap"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/llms.txt"
+  to = "/.netlify/functions/seo?route=llms"
+  status = 200
+  force = true
+
 # Client-side routing (React Router): serve index.html for every other
 # path so deep links and page refreshes don't 404.
 [[redirects]]

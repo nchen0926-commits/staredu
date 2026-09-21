@@ -2,4 +2,37 @@ User-agent: *
 Disallow: /admin
 Allow: /
 
+# Search and AI answer engines are welcome to read and cite the public site.
+User-agent: GPTBot
+Disallow: /admin
+Allow: /
+
+User-agent: OAI-SearchBot
+Disallow: /admin
+Allow: /
+
+User-agent: ChatGPT-User
+Disallow: /admin
+Allow: /
+
+User-agent: ClaudeBot
+Disallow: /admin
+Allow: /
+
+User-agent: Claude-User
+Disallow: /admin
+Allow: /
+
+User-agent: PerplexityBot
+Disallow: /admin
+Allow: /
+
+User-agent: Google-Extended
+Disallow: /admin
+Allow: /
+
+User-agent: Applebot-Extended
+Disallow: /admin
+Allow: /
+
 Sitemap: https://e-staredu.com/sitemap.xml

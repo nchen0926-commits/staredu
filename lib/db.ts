@@ -256,68 +256,109 @@ export async function uploadSiteAsset(body: Buffer, contentType: string, path: s
 
 export interface Article {
   id: string;
+  slug: string;
   title: string;
   summary: string;
+  seoDescription: string;
+  author: string;
   coverImage: string;
   body: string;
   published: boolean;
   publishedAt: string;
+  updatedAt: string;
+  viewCount: number;
 }
+
+export type ArticleInput = Omit<Article, "id" | "updatedAt" | "viewCount">;
 
 type ArticleRow = {
   id: string;
+  slug?: string | null;
   title: string;
   summary: string;
+  seo_description?: string | null;
+  author?: string | null;
   cover_image: string;
   body: string;
   published: boolean;
   published_at: string;
+  updated_at?: string | null;
+  view_count?: number | null;
 };
 
 function rowToArticle(row: ArticleRow): Article {
   return {
     id: row.id,
+    slug: row.slug ?? "",
     title: row.title,
     summary: row.summary,
+    seoDescription: row.seo_description ?? "",
+    author: row.author ?? "",
     coverImage: row.cover_image,
     body: row.body,
     published: row.published,
     publishedAt: row.published_at,
+    updatedAt: row.updated_at ?? row.published_at,
+    viewCount: row.view_count ?? 0,
   };
 }
 
+/** Visible to visitors: published, and the scheduled publish time has arrived. */
+export function isArticleLive(article: Pick<Article, "published" | "publishedAt">): boolean {
+  return article.published && new Date(article.publishedAt).getTime() <= Date.now();
+}
+
 function articlesError(message: string): Error {
-  if (/could not find the table|does not exist|permission denied/i.test(message)) {
+  if (/articles_slug_key|duplicate key/i.test(message)) {
+    return new Error("這個「網址名稱」已經被別篇文章用了，請換一個");
+  }
+  if (/could not find the table|does not exist|permission denied/i.test(message) && !/column|function/i.test(message)) {
     return new Error("尚未在 Supabase 建立「文章」資料表，請先執行 supabase/articles.sql");
+  }
+  if (/slug|seo_description|author|view_count|increment_article_views/i.test(message)) {
+    return new Error("尚未在 Supabase 升級「文章」資料表，請先執行 supabase/articles_v2.sql");
   }
   return new Error(message);
 }
 
-export async function listArticles(onlyPublished: boolean): Promise<Article[]> {
+export async function listArticles(onlyLive: boolean): Promise<Article[]> {
   const client = getClient();
   let query = client.from("articles").select("*").order("published_at", { ascending: false });
-  if (onlyPublished) query = query.eq("published", true);
+  if (onlyLive) query = query.eq("published", true).lte("published_at", new Date().toISOString());
   const { data, error } = await query;
   if (error) throw articlesError(error.message);
   return (data as ArticleRow[]).map(rowToArticle);
 }
 
-export async function getArticle(id: string): Promise<Article | null> {
+/** Looks an article up by its id or its custom URL name. */
+export async function getArticleByKey(key: string): Promise<Article | null> {
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(key)) return null;
   const client = getClient();
-  const { data, error } = await client.from("articles").select("*").eq("id", id).maybeSingle();
-  if (error) throw articlesError(error.message);
-  return data ? rowToArticle(data as ArticleRow) : null;
+
+  const byId = await client.from("articles").select("*").eq("id", key).maybeSingle();
+  if (byId.error) throw articlesError(byId.error.message);
+  if (byId.data) return rowToArticle(byId.data as ArticleRow);
+
+  const bySlug = await client.from("articles").select("*").eq("slug", key).maybeSingle();
+  if (bySlug.error) {
+    if (/slug/i.test(bySlug.error.message)) return null; // upgrade SQL not run yet
+    throw articlesError(bySlug.error.message);
+  }
+  return bySlug.data ? rowToArticle(bySlug.data as ArticleRow) : null;
 }
 
-export async function createArticle(input: Omit<Article, "id">): Promise<Article> {
+export async function createArticle(input: ArticleInput): Promise<Article> {
   const client = getClient();
   const id = `art-${Date.now().toString(36)}`;
   const { data, error } = await client
     .from("articles")
     .insert({
       id,
+      slug: input.slug || null,
       title: input.title,
       summary: input.summary,
+      seo_description: input.seoDescription,
+      author: input.author,
       cover_image: input.coverImage,
       body: input.body,
       published: input.published,
@@ -329,13 +370,16 @@ export async function createArticle(input: Omit<Article, "id">): Promise<Article
   return rowToArticle(data as ArticleRow);
 }
 
-export async function updateArticle(id: string, input: Omit<Article, "id">): Promise<Article | null> {
+export async function updateArticle(id: string, input: ArticleInput): Promise<Article | null> {
   const client = getClient();
   const { data, error } = await client
     .from("articles")
     .update({
+      slug: input.slug || null,
       title: input.title,
       summary: input.summary,
+      seo_description: input.seoDescription,
+      author: input.author,
       cover_image: input.coverImage,
       body: input.body,
       published: input.published,
@@ -354,4 +398,10 @@ export async function deleteArticle(id: string): Promise<boolean> {
   const { data, error } = await client.from("articles").delete().eq("id", id).select("id").maybeSingle();
   if (error) throw articlesError(error.message);
   return Boolean(data);
+}
+
+export async function incrementArticleViews(id: string): Promise<void> {
+  const client = getClient();
+  const { error } = await client.rpc("increment_article_views", { article_id: id });
+  if (error) console.error("Increment article views error:", error.message);
 }
