@@ -63,7 +63,8 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
     el.innerHTML = sanitizeArticleHtml(isHtml(initialHtml) ? initialHtml : textToHtml(initialHtml));
     try {
       document.execCommand('defaultParagraphSeparator', false, 'p');
-      document.execCommand('styleWithCSS', false, 'true');
+      // Use real tags (<b>, <i>, <u>, <font color>) rather than inline styles: cleaner, and better for search engines.
+      document.execCommand('styleWithCSS', false, 'false');
     } catch {
       // older browsers: formatting still works, just with different markup
     }

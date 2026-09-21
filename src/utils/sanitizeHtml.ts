@@ -13,7 +13,16 @@ const ALLOWED_TAGS = [
   'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'hr', 'span', 'div', 'font', 'sub', 'sup',
 ];
 const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'style', 'color', 'target', 'rel'];
-const ALLOWED_STYLE_PROPS = new Set(['color', 'background-color', 'text-align', 'width']);
+// Allowed inline-style properties, and what values each may take.
+const ALLOWED_STYLE_PROPS: Record<string, RegExp | true> = {
+  'color': true,
+  'background-color': true,
+  'text-align': /^(left|center|right|justify)$/,
+  'width': /^\d+(\.\d+)?(%|px)$/,
+  'font-weight': /^(bold|normal|[1-9]00)$/,
+  'font-style': /^(italic|normal)$/,
+  'text-decoration-line': /^(underline|line-through|none|underline line-through|line-through underline)$/,
+};
 
 let hookInstalled = false;
 
@@ -29,7 +38,9 @@ function installHook() {
       for (let i = 0; i < el.style.length; i++) {
         const prop = el.style[i];
         const value = el.style.getPropertyValue(prop);
-        if (ALLOWED_STYLE_PROPS.has(prop) && !/url\(|expression|javascript|@import/i.test(value)) {
+        const rule = ALLOWED_STYLE_PROPS[prop];
+        const valueOk = rule === true || (rule instanceof RegExp && rule.test(value.trim()));
+        if (rule && valueOk && !/url\(|expression|javascript|@import/i.test(value)) {
           kept.push(`${prop}: ${value}`);
         }
       }
