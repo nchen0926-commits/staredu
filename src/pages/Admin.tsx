@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { AppConfig, BannerItem, Course } from '../types';
-import { Plus, Trash2, Save, Image as ImageIcon, BookOpen, Tv, Layers, X, CheckCircle, AlertCircle, LogOut, Calendar, Info, ExternalLink, Link2 } from 'lucide-react';
+import { Plus, Trash2, Save, Image as ImageIcon, BookOpen, Tv, Layers, X, CheckCircle, AlertCircle, LogOut, Calendar, Info, ExternalLink, Link2, Settings } from 'lucide-react';
 import { formatImageUrl } from '../utils/imageUtils';
 import BrandLogo from '../components/BrandLogo';
 import Seo from '../components/Seo';
+import ImageUploadField from '../components/ImageUploadField';
+import SiteContentEditor from '../components/SiteContentEditor';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -26,7 +28,7 @@ export default function Admin() {
   const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'banners' | 'physical' | 'online'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'physical' | 'online' | 'site'>('banners');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [isSavingCourse, setIsSavingCourse] = useState(false);
 
@@ -110,6 +112,11 @@ export default function Admin() {
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  const handleSessionExpired = () => {
+    setIsAuthenticated(false);
+    showToast('登入已過期，請重新登入', 'error');
   };
 
   const handleLogout = async () => {
@@ -391,7 +398,7 @@ export default function Admin() {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 border-b border-slate-200 pb-2">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
         <button
           onClick={() => setActiveTab('banners')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
@@ -422,7 +429,22 @@ export default function Admin() {
         >
           <Tv className="w-4 h-4" /> 線上訂閱管理 ({onlineList.length})
         </button>
+        <button
+          onClick={() => setActiveTab('site')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'site'
+              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80'
+          }`}
+        >
+          <Settings className="w-4 h-4" /> 網站內容 (Logo / 文字)
+        </button>
       </div>
+
+      {/* Tab: Site content */}
+      {activeTab === 'site' && (
+        <SiteContentEditor onToast={showToast} onUnauthorized={handleSessionExpired} />
+      )}
 
       {/* Tab: Banners */}
       {activeTab === 'banners' && (
@@ -484,12 +506,12 @@ export default function Admin() {
                           <ImageIcon className="w-3.5 h-3.5 text-amber-600" />
                           <span>圖片網址 (Image URL)</span>
                         </label>
-                        <input
-                          type="text"
+                        <ImageUploadField
                           value={banner.image}
-                          onChange={(e) => handleHomeBannerImageChange(idx, e.target.value)}
-                          placeholder="請貼上圖片網址或 Google 雲端硬碟公開分享連結"
-                          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
+                          onChange={(url) => handleHomeBannerImageChange(idx, url)}
+                          placeholder="按右邊「上傳圖片」，或貼上圖片網址 / Google 雲端硬碟連結"
+                          onError={(msg) => showToast(msg, 'error')}
+                          onUnauthorized={handleSessionExpired}
                         />
                       </div>
 
@@ -541,12 +563,12 @@ export default function Admin() {
                   }}
                 />
               </div>
-              <input
-                type="text"
+              <ImageUploadField
                 value={config.physicalBanner}
-                onChange={(e) => setConfig({ ...config, physicalBanner: e.target.value })}
-                placeholder="請輸入實體營隊頁頂部 Banner 圖片網址"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
+                onChange={(url) => setConfig({ ...config, physicalBanner: url })}
+                placeholder="上傳圖片，或貼上圖片網址"
+                onError={(msg) => showToast(msg, 'error')}
+                onUnauthorized={handleSessionExpired}
               />
             </div>
 
@@ -562,12 +584,12 @@ export default function Admin() {
                   }}
                 />
               </div>
-              <input
-                type="text"
+              <ImageUploadField
                 value={config.onlineBanner}
-                onChange={(e) => setConfig({ ...config, onlineBanner: e.target.value })}
-                placeholder="請輸入線上訂閱頁頂部 Banner 圖片網址"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 bg-white"
+                onChange={(url) => setConfig({ ...config, onlineBanner: url })}
+                placeholder="上傳圖片，或貼上圖片網址"
+                onError={(msg) => showToast(msg, 'error')}
+                onUnauthorized={handleSessionExpired}
               />
             </div>
           </div>
@@ -766,14 +788,14 @@ export default function Admin() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">封面圖片網址 (支援 Google Drive 連結) *</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-bold text-slate-700 mb-1">封面圖片 (可上傳，或貼上網址 / Google Drive 連結) *</label>
+                <ImageUploadField
                   value={editingCourse.image || ''}
-                  onChange={(e) => setEditingCourse({ ...editingCourse, image: e.target.value })}
-                  placeholder="https://... 或 Google Drive 分享連結"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                  onChange={(url) => setEditingCourse({ ...editingCourse, image: url })}
+                  placeholder="按右邊「上傳圖片」，或貼上 https://... 網址"
                   required
+                  onError={(msg) => showToast(msg, 'error')}
+                  onUnauthorized={handleSessionExpired}
                 />
                 {editingCourse.image && (
                   <div className="mt-2 w-32 aspect-16/9 rounded-lg overflow-hidden bg-slate-100">

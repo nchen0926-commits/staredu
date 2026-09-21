@@ -3,9 +3,11 @@ import { Course, AppConfig } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import { formatImageUrl } from '../utils/imageUtils';
+import { useSiteContent } from '../hooks/useSiteContent';
 import { Users, Filter } from 'lucide-react';
 
 export default function PhysicalCourses() {
+  const { content } = useSiteContent();
   const [courses, setCourses] = useState<Course[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -50,7 +52,7 @@ export default function PhysicalCourses() {
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">實體營隊 / 課程</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">{content.physicalPage.title}</h1>
 
         {/* Category Filter */}
         <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-200">

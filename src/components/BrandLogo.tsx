@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSiteContent } from '../hooks/useSiteContent';
 
 interface BrandLogoProps {
   className?: string;
@@ -11,14 +12,15 @@ interface BrandLogoProps {
  * 官方小管家品牌圖標 (螢幕清晰向量版)
  */
 export function BrandIcon({ size = 52, className = '' }: { size?: number; className?: string }) {
+  const { content } = useSiteContent();
   return (
     <div
       className={`relative shrink-0 flex items-center justify-center select-none ${className}`}
       style={{ width: size, height: size }}
     >
       <img
-        src="/logo-icon.svg"
-        alt="小管家兒童理財"
+        src={content.brand.logoUrl || '/logo-icon.svg'}
+        alt={content.brand.name}
         width={size}
         height={size}
         className="w-full h-full object-contain pointer-events-none drop-shadow-xs"
@@ -57,8 +59,11 @@ export default function BrandLogo({
   textColor = 'text-slate-900',
   showText = true,
 }: BrandLogoProps) {
+  const { content, loaded } = useSiteContent();
   return (
-    <div className={`flex items-center gap-2.5 sm:gap-3 select-none ${className}`}>
+    <div
+      className={`flex items-center gap-2.5 sm:gap-3 select-none transition-opacity duration-200 ${loaded ? 'opacity-100' : 'opacity-0'} ${className}`}
+    >
       {/* 左邊放清晰向量 icon */}
       <BrandIcon size={iconSize} />
 
@@ -69,7 +74,7 @@ export default function BrandLogo({
             className={`font-black tracking-tight text-lg sm:text-xl md:text-2xl whitespace-nowrap leading-none ${textColor}`}
             style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
           >
-            小管家兒童理財
+            {content.brand.name}
           </span>
         </div>
       )}

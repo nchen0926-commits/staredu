@@ -3,9 +3,12 @@ import { Course, AppConfig } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import { formatImageUrl } from '../utils/imageUtils';
+import { useSiteContent } from '../hooks/useSiteContent';
 import { MonitorPlay, Filter, CheckCircle2, Zap } from 'lucide-react';
 
 export default function OnlineCourses() {
+  const { content } = useSiteContent();
+  const page = content.onlinePage;
   const [courses, setCourses] = useState<Course[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -50,29 +53,23 @@ export default function OnlineCourses() {
 
       {/* Subscription Value Proposition */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">線上訂閱課程</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">{page.title}</h1>
         <div className="bg-linear-to-br from-amber-500/10 via-orange-500/5 to-transparent rounded-3xl p-6 sm:p-8 border border-amber-200/50 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-left">
             <div className="flex items-center gap-2 text-amber-700 font-bold text-sm">
               <Zap className="w-4 h-4 fill-amber-500" />
-              <span>為什麼選擇小管家兒童理財線上訂閱？</span>
+              <span>{page.valueEyebrow}</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-slate-900">
-              每月自動續約，隨時可取消，享受無負擔的高品質科技教育
+              {page.valueTitle}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>每週解鎖全新原創實作單元</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>助教線上一對一作業批改與指導</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>隨時隨地可登入電腦或平板學習</span>
-              </div>
+              {page.points.map((point, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>{point}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

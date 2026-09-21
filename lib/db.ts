@@ -177,3 +177,58 @@ export async function saveConfig(patch: Partial<SiteConfig>): Promise<SiteConfig
   if (error) throw new Error(error.message);
   return getConfig();
 }
+
+export async function getSiteContent(): Promise<unknown> {
+  try {
+    const client = getClient();
+    const { data, error } = await client
+      .from("site_content")
+      .select("data")
+      .eq("id", 1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data?.data ?? {};
+  } catch (err) {
+    // The public site must keep rendering (with built-in defaults) even if
+    // this table hasn't been created yet or Supabase is briefly unreachable.
+    console.error("Load site content error:", err);
+    return {};
+  }
+}
+
+export async function saveSiteContent(content: unknown): Promise<void> {
+  const client = getClient();
+  const { error } = await client
+    .from("site_content")
+    .upsert({ id: 1, data: content, updated_at: new Date().toISOString() }, { onConflict: "id" });
+  if (error) {
+    if (/could not find the table|does not exist|permission denied/i.test(error.message)) {
+      throw new Error("尚未在 Supabase 建立「網站內容」資料表，請先執行 supabase/site_content.sql");
+    }
+    throw new Error(error.message);
+  }
+}
+
+const ASSET_BUCKET = "site-assets";
+
+export async function uploadSiteAsset(body: Buffer, contentType: string, path: string): Promise<string> {
+  const client = getClient();
+  const upload = () =>
+    client.storage.from(ASSET_BUCKET).upload(path, body, {
+      contentType,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+
+  let { error } = await upload();
+  if (error && /bucket not found/i.test(error.message)) {
+    const created = await client.storage.createBucket(ASSET_BUCKET, { public: true });
+    if (created.error && !/already exists/i.test(created.error.message)) {
+      throw new Error(created.error.message);
+    }
+    ({ error } = await upload());
+  }
+  if (error) throw new Error(error.message);
+
+  return client.storage.from(ASSET_BUCKET).getPublicUrl(path).data.publicUrl;
+}

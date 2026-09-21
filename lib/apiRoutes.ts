@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import express from "express";
 import Stripe from "stripe";
+import { resolveSiteContent } from "./siteContent";
 import {
   verifyAdminPassword,
   createSessionToken,
@@ -63,6 +65,63 @@ export function createApiRouter(): express.Router {
     const cookies = parseCookies(req.headers.cookie);
     res.json({ authenticated: verifySessionToken(cookies[SESSION_COOKIE_NAME]) });
   });
+
+  // --- Editable site content (logo, nav, home/footer text, ...) ---
+
+  router.get("/site-content", async (req, res) => {
+    res.json(await db.getSiteContent());
+  });
+
+  router.post("/site-content", requireAdmin, async (req, res) => {
+    try {
+      // Re-validate server-side: drops unknown keys, caps lengths, sanitizes links.
+      const content = resolveSiteContent(req.body);
+      await db.saveSiteContent(content);
+      res.json({ success: true, content });
+    } catch (err: any) {
+      console.error("Site content save error:", err);
+      res.status(500).json({ error: err?.message || "儲存網站內容失敗" });
+    }
+  });
+
+  // --- Image upload (admin only) ---
+
+  const IMAGE_TYPES: Record<string, string> = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+    "image/gif": "gif",
+    "image/svg+xml": "svg",
+  };
+  const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+  router.post(
+    "/admin/upload",
+    requireAdmin,
+    express.raw({ type: "image/*", limit: "5mb" }),
+    async (req, res) => {
+      try {
+        const contentType = String(req.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
+        const ext = IMAGE_TYPES[contentType];
+        if (!ext) {
+          return res.status(415).json({ error: "只支援 PNG、JPG、WebP、GIF、SVG 圖片" });
+        }
+        const body = req.body;
+        if (!Buffer.isBuffer(body) || body.length === 0) {
+          return res.status(400).json({ error: "沒有收到圖片檔案" });
+        }
+        if (body.length > MAX_UPLOAD_BYTES) {
+          return res.status(413).json({ error: "圖片太大，請壓縮到 4MB 以內" });
+        }
+        const path = `uploads/${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${ext}`;
+        const url = await db.uploadSiteAsset(body, contentType, path);
+        res.json({ success: true, url });
+      } catch (err: any) {
+        console.error("Upload error:", err);
+        res.status(500).json({ error: err?.message || "上傳失敗" });
+      }
+    }
+  );
 
   // --- Config ---
 

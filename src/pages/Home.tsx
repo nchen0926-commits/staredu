@@ -4,9 +4,14 @@ import { Course, AppConfig } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import { formatImageUrl } from '../utils/imageUtils';
+import { useSiteContent } from '../hooks/useSiteContent';
 import { Users, MonitorPlay, ChevronLeft, ChevronRight, Award, ShieldCheck, HeartHandshake, Lightbulb } from 'lucide-react';
 
+const ADVANTAGE_ICONS = [Lightbulb, Award, HeartHandshake, ShieldCheck];
+
 export default function Home() {
+  const { content } = useSiteContent();
+  const { home, brand } = content;
   const [courses, setCourses] = useState<Course[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
@@ -51,7 +56,7 @@ export default function Home() {
         title="首頁"
         description="小管家兒童理財提供兒童理財教育實體營隊、週末工作坊與線上訂閱課程，透過生活化情境與實作，培養孩子的金錢觀念與理財素養。"
       />
-      <h1 className="sr-only">小管家兒童理財：兒童理財教育實體營隊與線上訂閱課程</h1>
+      <h1 className="sr-only">{brand.name}：兒童理財教育實體營隊與線上訂閱課程</h1>
       {/* Hero Carousel */}
       <div className="relative w-full aspect-21/9 md:aspect-24/9 max-h-[520px] overflow-hidden bg-slate-900 shadow-lg">
         {banners.map((banner, idx) => {
@@ -134,49 +139,26 @@ export default function Home() {
       </div>
 
       {/* Core Advantages */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-              <Lightbulb className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-[24px] font-bold text-slate-900 leading-snug">生活化理財教學</h3>
-              <p className="text-[18px] text-slate-600 mt-2 leading-relaxed">從日常生活情境出發，讓孩子學會分辨想要與需要，建立自律金錢觀念。</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-              <Award className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-[24px] font-bold text-slate-900 leading-snug">實戰作品與成果產出</h3>
-              <p className="text-[18px] text-slate-600 mt-2 leading-relaxed">每堂課程皆能產出專屬手作帳本、創意商業提案或理財桌遊實踐體驗。</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-              <HeartHandshake className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-[24px] font-bold text-slate-900 leading-snug">雙師小班制度</h3>
-              <p className="text-[18px] text-slate-600 mt-2 leading-relaxed">實體營隊每班配置專業講師與助教，全程細心關照學員進度。</p>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-[24px] font-bold text-slate-900 leading-snug">安心安全環境</h3>
-              <p className="text-[18px] text-slate-600 mt-2 leading-relaxed">高規格教學場地，配有專屬數位平台與家長課後學習反饋。</p>
-            </div>
+      {home.advantages.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {home.advantages.map((item, idx) => {
+              const Icon = ADVANTAGE_ICONS[idx % ADVANTAGE_ICONS.length];
+              return (
+                <div key={idx} className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-[24px] font-bold text-slate-900 leading-snug">{item.title}</h3>
+                    <p className="text-[18px] text-slate-600 mt-2 leading-relaxed">{item.description}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Featured Physical Courses */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -184,17 +166,17 @@ export default function Home() {
           <div>
             <div className="flex items-center gap-2 text-amber-600 font-bold text-sm">
               <Users className="w-4 h-4" />
-              <span>實體互動體驗</span>
+              <span>{home.physicalSection.eyebrow}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              熱門實體營隊與週末工作坊
+              {home.physicalSection.title}
             </h2>
           </div>
           <Link
             to="/physical-courses"
             className="text-sm font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 group"
           >
-            查看全部實體課程
+            {home.physicalSection.linkText}
             <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>
@@ -212,17 +194,17 @@ export default function Home() {
           <div>
             <div className="flex items-center gap-2 text-amber-600 font-bold text-sm">
               <MonitorPlay className="w-4 h-4" />
-              <span>在家隨選隨學</span>
+              <span>{home.onlineSection.eyebrow}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-              線上訂閱暢學專區
+              {home.onlineSection.title}
             </h2>
           </div>
           <Link
             to="/online-courses"
             className="text-sm font-bold text-amber-600 hover:text-amber-700 flex items-center gap-1 group"
           >
-            查看全部線上課程
+            {home.onlineSection.linkText}
             <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </div>

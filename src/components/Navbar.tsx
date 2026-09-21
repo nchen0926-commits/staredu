@@ -2,15 +2,19 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, MonitorPlay, Users } from 'lucide-react';
 import BrandLogo from './BrandLogo';
+import SmartLink from './SmartLink';
+import { useSiteContent } from '../hooks/useSiteContent';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { content } = useSiteContent();
+  const { nav } = content;
 
   const navLinks = [
-    { name: '首頁', path: '/' },
-    { name: '實體營隊 / 課程', path: '/physical-courses', icon: Users },
-    { name: '線上訂閱課程', path: '/online-courses', icon: MonitorPlay },
+    { name: nav.homeLabel, path: '/' },
+    { name: nav.physicalLabel, path: '/physical-courses', icon: Users },
+    { name: nav.onlineLabel, path: '/online-courses', icon: MonitorPlay },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -44,14 +48,16 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            <div className="pl-4">
-              <Link
-                to="/online-courses"
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 transition-all hover:shadow-lg active:scale-95"
-              >
-                會員中心
-              </Link>
-            </div>
+            {nav.memberLabel && (
+              <div className="pl-4">
+                <SmartLink
+                  to={nav.memberUrl || '/'}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 transition-all hover:shadow-lg active:scale-95"
+                >
+                  {nav.memberLabel}
+                </SmartLink>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -88,15 +94,17 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <div className="pt-2">
-            <Link
-              to="/online-courses"
-              onClick={() => setIsOpen(false)}
-              className="block text-center w-full px-5 py-3 rounded-xl text-base font-bold text-white bg-linear-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20"
-            >
-              會員中心
-            </Link>
-          </div>
+          {nav.memberLabel && (
+            <div className="pt-2">
+              <SmartLink
+                to={nav.memberUrl || '/'}
+                onClick={() => setIsOpen(false)}
+                className="block text-center w-full px-5 py-3 rounded-xl text-base font-bold text-white bg-linear-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20"
+              >
+                {nav.memberLabel}
+              </SmartLink>
+            </div>
+          )}
         </div>
       )}
     </nav>
