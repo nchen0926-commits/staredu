@@ -228,6 +228,7 @@ export default function Admin() {
         title: editingCourse.title.trim(),
         category: editingCourse.category.trim(),
         price: Number(editingCourse.price) || 0,
+        priceUnit: (editingCourse.priceUnit || '').trim(),
         description: (editingCourse.description || '').trim(),
         image: (editingCourse.image || '').trim(),
         tags: parsedTags,
@@ -293,6 +294,7 @@ export default function Admin() {
       title: '',
       category: type === 'physical' ? '冬令營 / 實體活動' : '線上訂閱',
       price: type === 'physical' ? 8800 : 599,
+      priceUnit: type === 'online' ? '月' : '',
       description: '',
       image: 'https://images.unsplash.com/photo-1579621970588-a35d0e7ab9b6?auto=format&fit=crop&q=80&w=800',
       tags: defaultTags,
@@ -691,8 +693,8 @@ export default function Admin() {
         <div className="space-y-6">
           <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">線上月訂閱課程清單</h3>
-              <p className="text-xs text-slate-500 mt-0.5">點選右側按鈕新增線上課程，可設定月訂閱費用與線上解鎖單元說明</p>
+              <h3 className="text-lg font-bold text-slate-900">線上課程清單</h3>
+              <p className="text-xs text-slate-500 mt-0.5">點選右側按鈕新增線上課程，可設定費用（單位自己填）與線上解鎖單元說明</p>
             </div>
             <button
               onClick={() => openAddModal('online')}
@@ -725,7 +727,7 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-base font-black text-slate-900">NT$ {course.price.toLocaleString()} / 月</span>
+                  <span className="text-base font-black text-slate-900">NT$ {course.price.toLocaleString()}{course.priceUnit ? ` / ${course.priceUnit}` : ''}</span>
                   <div className="flex gap-2">
                     <button
                       onClick={() => openEditModal(course)}
@@ -790,16 +792,35 @@ export default function Admin() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    {editingCourse.type === 'physical' ? '費用 (NTD) *' : '月訂閱費 (NTD) *'}
-                  </label>
-                  <input
-                    type="number"
-                    value={editingCourse.price ?? 0}
-                    onChange={(e) => setEditingCourse({ ...editingCourse, price: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                    required
-                  />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">費用 (NTD) *</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={editingCourse.price ?? 0}
+                      onChange={(e) => setEditingCourse({ ...editingCourse, price: Number(e.target.value) })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                      required
+                    />
+                    {editingCourse.type === 'online' && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-sm font-bold text-slate-500">/</span>
+                        <input
+                          type="text"
+                          value={editingCourse.priceUnit ?? ''}
+                          onChange={(e) => setEditingCourse({ ...editingCourse, priceUnit: e.target.value })}
+                          maxLength={10}
+                          placeholder="單位"
+                          aria-label="費用單位"
+                          className="w-24 px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  {editingCourse.type === 'online' && (
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      單位自己填，例如「月」「堂」「期」；留空就不顯示單位。只有填「月」才會是每月自動扣款，其他都是一次付費。
+                    </p>
+                  )}
                 </div>
               </div>
 

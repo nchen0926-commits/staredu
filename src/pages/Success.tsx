@@ -74,7 +74,7 @@ export default function Success() {
                 )}
                 <div className="flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5 text-slate-400" />
-                  <span>費用：NT$ {course.price.toLocaleString()} {course.type === 'online' ? '/ 月' : ''}</span>
+                  <span>費用：NT$ {course.price.toLocaleString()} {course.priceUnit ? `/ ${course.priceUnit}` : ''}</span>
                 </div>
               </div>
             </div>

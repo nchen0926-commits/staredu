@@ -35,7 +35,9 @@ export default function CourseCard({ course }: CourseCardProps) {
     }
   };
 
-  const isSubscription = course.type === 'online';
+  const unit = course.priceUnit ?? (course.type === 'online' ? '月' : '');
+  const isSubscription = course.type === 'online' && unit === '月';
+  const isOnline = course.type === 'online';
 
   return (
     <>
@@ -111,14 +113,14 @@ export default function CourseCard({ course }: CourseCardProps) {
           <div className="flex items-center justify-between pt-3 border-t border-slate-100">
             <div>
               <span className="text-xs text-slate-400 block font-medium">
-                {isSubscription ? '月訂閱費' : '單人費用'}
+                {isSubscription ? '月訂閱費' : isOnline ? '課程費用' : '單人費用'}
               </span>
               <div className="flex items-baseline gap-1">
                 <span className="text-xs font-bold text-amber-600">NT$</span>
                 <span className="text-2xl font-black text-slate-900">
                   {course.price.toLocaleString()}
                 </span>
-                {isSubscription && <span className="text-xs text-slate-500 font-normal">/ 月</span>}
+                {unit && <span className="text-xs text-slate-500 font-normal">/ {unit}</span>}
               </div>
             </div>
 
@@ -234,14 +236,14 @@ export default function CourseCard({ course }: CourseCardProps) {
               <div className="flex items-center justify-between pt-6 border-t border-slate-100">
                 <div>
                   <span className="text-xs text-slate-400 block font-medium">
-                    {isSubscription ? '月訂閱費' : '報名費用'}
+                    {isSubscription ? '月訂閱費' : isOnline ? '課程費用' : '報名費用'}
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-sm font-bold text-amber-600">NT$</span>
                     <span className="text-3xl font-black text-slate-900">
                       {course.price.toLocaleString()}
                     </span>
-                    {isSubscription && <span className="text-sm text-slate-500 font-normal">/ 月</span>}
+                    {unit && <span className="text-sm text-slate-500 font-normal">/ {unit}</span>}
                   </div>
                 </div>
 

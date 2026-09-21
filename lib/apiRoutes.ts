@@ -259,9 +259,10 @@ export function createApiRouter(): express.Router {
 
   router.post("/courses", requireAdmin, async (req, res) => {
     try {
-      const { title, type, category, price, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
+      const { title, type, category, price, priceUnit, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
       const course = await db.createCourse({
         type: type === "online" ? "online" : "physical",
+        priceUnit: typeof priceUnit === "string" ? priceUnit.trim().slice(0, 10) : (type === "online" ? "月" : ""),
         title: title || "",
         category: category || "",
         price: Number(price) || 0,
@@ -283,12 +284,13 @@ export function createApiRouter(): express.Router {
 
   router.put("/courses/:id", requireAdmin, async (req, res) => {
     try {
-      const { title, type, category, price, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
+      const { title, type, category, price, priceUnit, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
       const patch: any = {};
       if (title !== undefined) patch.title = title;
       if (type !== undefined) patch.type = type;
       if (category !== undefined) patch.category = category;
       if (price !== undefined) patch.price = Number(price) || 0;
+      if (typeof priceUnit === "string") patch.priceUnit = priceUnit.trim().slice(0, 10);
       if (description !== undefined) patch.description = description;
       if (image !== undefined) patch.image = image;
       if (tags !== undefined) patch.tags = Array.isArray(tags) ? tags : String(tags).split(",").map((t: string) => t.trim()).filter(Boolean);
@@ -344,7 +346,8 @@ export function createApiRouter(): express.Router {
         });
       }
 
-      const isSubscription = course.type === "online";
+      // Only a per-month price is billed as a recurring subscription; any other unit is a one-time payment.
+      const isSubscription = course.type === "online" && course.priceUnit === "月";
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
