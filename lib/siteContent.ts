@@ -69,6 +69,8 @@ export interface SiteContent {
     email: string;
     phone: string;
     address: string;
+    lineId: string;
+    companyName: string;
     facebookUrl: string;
     instagramUrl: string;
     youtubeUrl: string;
@@ -154,6 +156,9 @@ export const defaultSiteContent: SiteContent = {
     email: 'contact@e-staredu.com',
     phone: '02-2345-6789',
     address: '台北市大安區教育科技創新園區',
+    lineId: '',
+    // Shown after © at the very bottom; falls back to the site name when empty.
+    companyName: '',
     facebookUrl: 'https://www.facebook.com/groups/963798131355327',
     instagramUrl: '',
     youtubeUrl: 'https://www.youtube.com/@richfromthestart',
@@ -189,6 +194,15 @@ export function safeUrl(value: string): string {
   if (v.startsWith('#')) return v;
   if (/^(https?:\/\/|mailto:|tel:)/i.test(v)) return v;
   return '';
+}
+
+/** Turns a LINE ID (@official-account or personal ID) — or a pasted link — into a chat link. */
+export function lineLink(lineId: string): string {
+  const id = lineId.trim();
+  if (!id) return '';
+  if (/^https?:\/\//i.test(id)) return safeUrl(id);
+  if (id.startsWith('@')) return `https://line.me/R/ti/p/${encodeURIComponent(id)}`;
+  return `https://line.me/ti/p/~${encodeURIComponent(id)}`;
 }
 
 function isUrlKey(key: string): boolean {

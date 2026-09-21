@@ -1,14 +1,19 @@
-import { Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Youtube, Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import SmartLink from './SmartLink';
 import { useSiteContent } from '../hooks/useSiteContent';
+import { lineLink } from '../../lib/siteContent';
 
 export default function Footer() {
   const { content } = useSiteContent();
   const { footer } = content;
   const menuLinks = content.nav.menu.filter((item) => item.label && item.url);
 
+  const lineHref = lineLink(footer.lineId);
+  const lineText = /^https?:\/\//i.test(footer.lineId) ? '官方 LINE' : footer.lineId;
+
   const socialLinks = [
+    { url: lineHref, label: 'LINE', Icon: MessageCircle },
     { url: footer.facebookUrl, label: 'Facebook', Icon: Facebook },
     { url: footer.instagramUrl, label: 'Instagram', Icon: Instagram },
     { url: footer.youtubeUrl, label: 'YouTube', Icon: Youtube },
@@ -70,6 +75,12 @@ export default function Footer() {
                   <span>{footer.phone}</span>
                 </li>
               )}
+              {lineHref && (
+                <li className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <SmartLink to={lineHref} className="hover:text-amber-400 transition-colors">LINE：{lineText}</SmartLink>
+                </li>
+              )}
               {footer.address && (
                 <li className="flex items-start gap-2">
                   <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -81,7 +92,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} {content.brand.name}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {footer.companyName || content.brand.name}. All rights reserved.</p>
           {legalLinks.length > 0 && (
             <div className="flex gap-6">
               {legalLinks.map((item) => (

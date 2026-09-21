@@ -364,7 +364,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
       </Card>
 
       <Card title="頁尾與聯絡資訊" description="網頁最下方的簡介、聯絡方式與社群連結；欄位留空就不會顯示">
-        <Field label="簡介文字">
+        <Field label="頁尾簡介語" hint="Logo 下方那一段介紹文字">
           <textarea
             rows={3}
             value={footer.description}
@@ -376,6 +376,22 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           <TextField label="Email" value={footer.email} onChange={(v) => update((d) => { d.footer.email = v; })} />
           <TextField label="電話" value={footer.phone} onChange={(v) => update((d) => { d.footer.phone = v; })} />
           <TextField label="地址" value={footer.address} onChange={(v) => update((d) => { d.footer.address = v; })} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField
+            label="LINE ID"
+            hint="官方帳號請連 @ 一起填，例：@staredu；也可以貼 LINE 連結"
+            placeholder="@xxxxxxx"
+            value={footer.lineId}
+            onChange={(v) => update((d) => { d.footer.lineId = v; })}
+          />
+          <TextField
+            label="公司名稱（最下方版權文字）"
+            hint="顯示成「© 年份 公司名稱」；留空就用上面的網站名稱"
+            placeholder="例：○○股份有限公司"
+            value={footer.companyName}
+            onChange={(v) => update((d) => { d.footer.companyName = v; })}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <TextField label="Facebook 連結" placeholder="https://..." value={footer.facebookUrl} onChange={(v) => update((d) => { d.footer.facebookUrl = v; })} />
