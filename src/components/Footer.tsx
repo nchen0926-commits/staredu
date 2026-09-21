@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import SmartLink from './SmartLink';
@@ -48,13 +47,11 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-4">快速連結</h4>
             <ul className="space-y-2.5 font-medium">
-              <li><Link to="/" className="hover:text-amber-400 transition-colors">首頁</Link></li>
               {menuLinks.map((item) => (
                 <li key={item.label + item.url}>
                   <SmartLink to={item.url} className="hover:text-amber-400 transition-colors">{item.label}</SmartLink>
                 </li>
               ))}
-              <li><Link to="/admin" className="hover:text-amber-400 transition-colors">後台管理</Link></li>
             </ul>
           </div>
 
