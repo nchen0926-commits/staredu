@@ -9,6 +9,7 @@ export interface Course {
   tags: string[];
   stripePriceId?: string;
   priceUnit?: string;
+  paymentUrl?: string;
   location?: string;
   duration?: string;
   details?: string;

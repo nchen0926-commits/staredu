@@ -233,6 +233,12 @@ export function createApiRouter(): express.Router {
 
   // --- Courses ---
 
+  // Payment/registration links must be real web addresses (no javascript: etc.).
+  const cleanPaymentUrl = (value: unknown) => {
+    const v = String(value ?? "").trim().slice(0, 1000);
+    return /^https?:\/\//i.test(v) ? v : "";
+  };
+
   router.get("/courses", async (req, res) => {
     try {
       const { type } = req.query;
@@ -259,9 +265,10 @@ export function createApiRouter(): express.Router {
 
   router.post("/courses", requireAdmin, async (req, res) => {
     try {
-      const { title, type, category, price, priceUnit, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
+      const { title, type, category, price, priceUnit, paymentUrl, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
       const course = await db.createCourse({
         type: type === "online" ? "online" : "physical",
+        paymentUrl: cleanPaymentUrl(paymentUrl),
         priceUnit: typeof priceUnit === "string" ? priceUnit.trim().slice(0, 10) : (type === "online" ? "月" : ""),
         title: title || "",
         category: category || "",
@@ -284,13 +291,14 @@ export function createApiRouter(): express.Router {
 
   router.put("/courses/:id", requireAdmin, async (req, res) => {
     try {
-      const { title, type, category, price, priceUnit, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
+      const { title, type, category, price, priceUnit, paymentUrl, description, image, tags, location, duration, details, startDate, endDate } = req.body || {};
       const patch: any = {};
       if (title !== undefined) patch.title = title;
       if (type !== undefined) patch.type = type;
       if (category !== undefined) patch.category = category;
       if (price !== undefined) patch.price = Number(price) || 0;
       if (typeof priceUnit === "string") patch.priceUnit = priceUnit.trim().slice(0, 10);
+      if (paymentUrl !== undefined) patch.paymentUrl = cleanPaymentUrl(paymentUrl);
       if (description !== undefined) patch.description = description;
       if (image !== undefined) patch.image = image;
       if (tags !== undefined) patch.tags = Array.isArray(tags) ? tags : String(tags).split(",").map((t: string) => t.trim()).filter(Boolean);
@@ -337,13 +345,23 @@ export function createApiRouter(): express.Router {
         return res.status(404).json({ error: "Course not found" });
       }
 
+      // A payment link set in the admin (e.g. ECPay) always wins.
+      if (course.paymentUrl) {
+        return res.json({ url: course.paymentUrl });
+      }
+
       const stripe = getStripe();
       const origin = req.headers.origin || "http://localhost:3000";
 
       if (!stripe) {
-        return res.json({
-          url: `${origin}/success?session_id=demo_session_${course.id}&course_id=${course.id}`,
-        });
+        // The demo flow ends on a fake "order confirmed" page, so it must never
+        // reach real visitors. Enable it only on purpose, e.g. for local testing.
+        if (process.env.ALLOW_DEMO_CHECKOUT === "1") {
+          return res.json({
+            url: `${origin}/success?session_id=demo_session_${course.id}&course_id=${course.id}`,
+          });
+        }
+        return res.status(503).json({ error: "目前尚未開放線上付款，請聯絡我們報名，謝謝！" });
       }
 
       // Only a per-month price is billed as a recurring subscription; any other unit is a one-time payment.

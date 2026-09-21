@@ -13,6 +13,10 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   const handleEnroll = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (course.paymentUrl && /^https?:\/\//i.test(course.paymentUrl)) {
+      window.location.href = course.paymentUrl;
+      return;
+    }
     try {
       setLoading(true);
       const res = await fetch('/api/create-checkout-session', {
@@ -25,7 +29,7 @@ export default function CourseCard({ course }: CourseCardProps) {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert('結帳頁面載入失敗，請稍後再試。');
+        alert(data.error || '結帳頁面載入失敗，請稍後再試。');
       }
     } catch (err) {
       console.error(err);

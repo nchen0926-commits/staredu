@@ -7,6 +7,7 @@ export interface Course {
   category: string;
   price: number;
   priceUnit: string;
+  paymentUrl: string;
   description: string;
   image: string;
   tags: string[];
@@ -47,6 +48,7 @@ type CourseRow = {
   category: string;
   price: number;
   price_unit?: string | null;
+  payment_url?: string | null;
   description: string;
   image: string;
   tags: string[];
@@ -66,6 +68,7 @@ function rowToCourse(row: CourseRow): Course {
     price: row.price,
     // Rows created before price_unit existed: online courses were always billed per month.
     priceUnit: row.price_unit ?? (row.type === "online" ? "月" : ""),
+    paymentUrl: row.payment_url ?? "",
     description: row.description,
     image: row.image,
     tags: Array.isArray(row.tags) ? row.tags : [],
@@ -80,6 +83,9 @@ function rowToCourse(row: CourseRow): Course {
 function courseError(message: string): Error {
   if (/price_unit/i.test(message)) {
     return new Error("尚未在 Supabase 加上「費用單位」欄位，請先執行 supabase/course_price_unit.sql");
+  }
+  if (/payment_url/i.test(message)) {
+    return new Error("尚未在 Supabase 加上「付款連結」欄位，請先執行 supabase/course_payment_url.sql");
   }
   return new Error(message);
 }
@@ -112,6 +118,7 @@ export async function createCourse(input: Omit<Course, "id"> & { id?: string }):
       category: input.category,
       price: input.price,
       price_unit: input.priceUnit,
+      payment_url: input.paymentUrl,
       description: input.description,
       image: input.image,
       tags: input.tags,
@@ -135,6 +142,7 @@ export async function updateCourse(id: string, patch: Partial<Course>): Promise<
   if (patch.category !== undefined) dbPatch.category = patch.category;
   if (patch.price !== undefined) dbPatch.price = patch.price;
   if (patch.priceUnit !== undefined) dbPatch.price_unit = patch.priceUnit;
+  if (patch.paymentUrl !== undefined) dbPatch.payment_url = patch.paymentUrl;
   if (patch.description !== undefined) dbPatch.description = patch.description;
   if (patch.image !== undefined) dbPatch.image = patch.image;
   if (patch.tags !== undefined) dbPatch.tags = patch.tags;

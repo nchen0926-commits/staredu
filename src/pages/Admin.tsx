@@ -229,6 +229,7 @@ export default function Admin() {
         category: editingCourse.category.trim(),
         price: Number(editingCourse.price) || 0,
         priceUnit: (editingCourse.priceUnit || '').trim(),
+        paymentUrl: (editingCourse.paymentUrl || '').trim(),
         description: (editingCourse.description || '').trim(),
         image: (editingCourse.image || '').trim(),
         tags: parsedTags,
@@ -295,6 +296,7 @@ export default function Admin() {
       category: type === 'physical' ? '冬令營 / 實體活動' : '線上訂閱',
       price: type === 'physical' ? 8800 : 599,
       priceUnit: type === 'online' ? '月' : '',
+      paymentUrl: '',
       description: '',
       image: 'https://images.unsplash.com/photo-1579621970588-a35d0e7ab9b6?auto=format&fit=crop&q=80&w=800',
       tags: defaultTags,
@@ -822,6 +824,22 @@ export default function Admin() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  報名 / 付款連結<span className="ml-2 font-normal text-slate-400">（選填）</span>
+                </label>
+                <input
+                  type="text"
+                  value={editingCourse.paymentUrl ?? ''}
+                  onChange={(e) => setEditingCourse({ ...editingCourse, paymentUrl: e.target.value })}
+                  placeholder="https://... 例如綠界的付款連結"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  填了之後，網站上這門課的「立即訂閱 / 立即報名」按鈕會直接前往這個連結。留空的話，按下去會顯示「目前尚未開放線上付款」。
+                </p>
               </div>
 
               <div>
