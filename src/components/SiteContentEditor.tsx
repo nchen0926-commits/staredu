@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Plus, Trash2, Save, Upload, Loader2 } from 'lucide-react';
 import { resolveSiteContent, SiteContent } from '../../lib/siteContent';
 import { setSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import ImageUploadField from './ImageUploadField';
+import { uploadImage, UploadError } from '../utils/uploadImage';
 
 interface SiteContentEditorProps {
   onToast: (text: string, type?: 'success' | 'error') => void;
@@ -85,6 +86,8 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
 export default function SiteContentEditor({ onToast, onUnauthorized }: SiteContentEditorProps) {
   const [data, setData] = useState<SiteContent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const bulkInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('/api/site-content')
@@ -108,6 +111,39 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
       change(next);
       return next;
     });
+
+  const MAX_TESTIMONIALS = 20;
+
+  const handleBulkUpload = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const room = Math.max(MAX_TESTIMONIALS - data.testimonials.items.length, 0);
+    const files = Array.from(fileList).slice(0, room);
+    if (files.length < fileList.length) {
+      onToast(`口碑最多 ${MAX_TESTIMONIALS} 則，這次只會上傳前 ${files.length} 張`, 'error');
+    }
+    if (files.length === 0) return;
+
+    setBulkUploading(true);
+    let added = 0;
+    try {
+      for (const file of files) {
+        const url = await uploadImage(file);
+        update((d) => { d.testimonials.items.push({ imageUrl: url, name: '', quote: '' }); });
+        added += 1;
+      }
+      onToast(`已加入 ${added} 張截圖，記得按最下方的「儲存網站內容」`);
+    } catch (err) {
+      if (err instanceof UploadError && err.status === 401) {
+        onUnauthorized();
+      } else {
+        const reason = err instanceof Error ? err.message : '上傳失敗';
+        onToast(`已加入 ${added} 張，第 ${added + 1} 張失敗：${reason}`, 'error');
+      }
+    } finally {
+      setBulkUploading(false);
+      if (bulkInput.current) bulkInput.current.value = '';
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -319,11 +355,30 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           <TextField label="區塊說明" value={testimonials.subtitle} onChange={(v) => update((d) => { d.testimonials.subtitle = v; })} />
         </div>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-bold text-slate-800">口碑內容（最多 20 則）</span>
-            <AddButton onClick={() => update((d) => { d.testimonials.items.push({ imageUrl: '', name: '', quote: '' }); })}>
-              新增一則口碑
-            </AddButton>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => bulkInput.current?.click()}
+                disabled={bulkUploading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+              >
+                {bulkUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                {bulkUploading ? '上傳中，請稍候...' : '一次上傳多張截圖'}
+              </button>
+              <AddButton onClick={() => update((d) => { d.testimonials.items.push({ imageUrl: '', name: '', quote: '' }); })}>
+                新增一則口碑
+              </AddButton>
+            </div>
+            <input
+              ref={bulkInput}
+              type="file"
+              multiple
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => handleBulkUpload(e.target.files)}
+            />
           </div>
           {testimonials.items.map((item, idx) => (
             <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
