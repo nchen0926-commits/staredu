@@ -14,8 +14,12 @@ export default function Footer() {
     { url: footer.youtubeUrl, label: 'YouTube', Icon: Youtube },
   ].filter((item) => item.url);
 
-  // Legal links only show once a URL has been filled in from the admin.
-  const legalLinks = footer.legalLinks.filter((item) => item.label && item.url);
+  // 服務條款 / 隱私權政策 / 常見問題 link automatically once their page has content;
+  // any extra links added in the admin show only when a URL is filled in.
+  const pageLinks = (['terms', 'privacy', 'faq'] as const)
+    .filter((key) => content.pages[key].body)
+    .map((key) => ({ label: content.pages[key].title, url: `/${key}` }));
+  const legalLinks = [...pageLinks, ...footer.legalLinks.filter((item) => item.label && item.url)];
 
   return (
     <footer className="bg-slate-900 text-slate-400 text-sm">
@@ -80,7 +84,7 @@ export default function Footer() {
           {legalLinks.length > 0 && (
             <div className="flex gap-6">
               {legalLinks.map((item) => (
-                <SmartLink key={item.label} to={item.url} className="hover:text-slate-400">
+                <SmartLink key={item.url + item.label} to={item.url} className="hover:text-slate-400">
                   {item.label}
                 </SmartLink>
               ))}

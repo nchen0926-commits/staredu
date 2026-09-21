@@ -11,7 +11,7 @@ const ADVANTAGE_ICONS = [Lightbulb, Award, HeartHandshake, ShieldCheck];
 
 export default function Home() {
   const { content } = useSiteContent();
-  const { home, brand } = content;
+  const { home, brand, testimonials } = content;
   const [courses, setCourses] = useState<Course[]>([]);
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
@@ -215,6 +215,39 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* Parent testimonials */}
+      {testimonials.items.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{testimonials.title}</h2>
+            {testimonials.subtitle && <p className="text-slate-500 mt-1">{testimonials.subtitle}</p>}
+          </div>
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6">
+            {testimonials.items.map((item, idx) => (
+              <figure
+                key={idx}
+                className="break-inside-avoid mb-6 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
+              >
+                {item.imageUrl && (
+                  <img
+                    src={formatImageUrl(item.imageUrl)}
+                    alt={item.name ? `${item.name}的回饋` : '家長回饋截圖'}
+                    loading="lazy"
+                    className="w-full h-auto"
+                  />
+                )}
+                {(item.quote || item.name) && (
+                  <figcaption className="p-5 space-y-1">
+                    {item.quote && <p className="text-slate-700 leading-relaxed">{item.quote}</p>}
+                    {item.name && <p className="text-sm font-bold text-amber-600">{item.name}</p>}
+                  </figcaption>
+                )}
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -136,7 +136,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
     }
   };
 
-  const { brand, nav, home, physicalPage, onlinePage, footer } = data;
+  const { brand, nav, home, physicalPage, onlinePage, footer, testimonials, pages } = data;
 
   return (
     <div className="space-y-8">
@@ -287,7 +287,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           <div className="flex items-center justify-between">
             <div>
               <span className="text-sm font-bold text-slate-800">頁尾底部連結</span>
-              <p className="text-xs text-slate-400 mt-0.5">例如服務條款、隱私權政策；「連結」沒填的項目不會顯示在網站上</p>
+              <p className="text-xs text-slate-400 mt-0.5">額外的連結（服務條款、隱私權政策、常見問題請用下面的「頁面內容」，填了內容就會自動出現）</p>
             </div>
             <AddButton onClick={() => update((d) => { d.footer.legalLinks.push({ label: '', url: '' }); })}>新增一項</AddButton>
           </div>
@@ -311,6 +311,92 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card title="家長口碑" description="首頁最下方的口碑區塊；一則都沒有的時候，這個區塊不會顯示">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="區塊標題" value={testimonials.title} onChange={(v) => update((d) => { d.testimonials.title = v; })} />
+          <TextField label="區塊說明" value={testimonials.subtitle} onChange={(v) => update((d) => { d.testimonials.subtitle = v; })} />
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-800">口碑內容（最多 20 則）</span>
+            <AddButton onClick={() => update((d) => { d.testimonials.items.push({ imageUrl: '', name: '', quote: '' }); })}>
+              新增一則口碑
+            </AddButton>
+          </div>
+          {testimonials.items.map((item, idx) => (
+            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">口碑 #{idx + 1}</span>
+                <RemoveButton onClick={() => update((d) => { d.testimonials.items.splice(idx, 1); })} />
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                {item.imageUrl && (
+                  <img
+                    src={formatImageUrl(item.imageUrl)}
+                    alt="截圖預覽"
+                    className="w-full sm:w-40 rounded-xl border border-slate-200 bg-white object-contain"
+                  />
+                )}
+                <div className="flex-1 w-full space-y-3">
+                  <Field label="留言截圖" hint="可以只放截圖，也可以只寫文字">
+                    <ImageUploadField
+                      value={item.imageUrl}
+                      onChange={(url) => update((d) => { d.testimonials.items[idx].imageUrl = url; })}
+                      placeholder="按右邊「上傳圖片」上傳截圖"
+                      onError={(msg) => onToast(msg, 'error')}
+                      onUnauthorized={onUnauthorized}
+                    />
+                  </Field>
+                  <TextField
+                    label="家長稱呼（選填）"
+                    placeholder="例：林媽媽"
+                    value={item.name}
+                    onChange={(v) => update((d) => { d.testimonials.items[idx].name = v; })}
+                  />
+                  <Field label="文字留言（選填）">
+                    <textarea
+                      rows={2}
+                      value={item.quote}
+                      onChange={(e) => update((d) => { d.testimonials.items[idx].quote = e.target.value; })}
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card
+        title="頁面內容：服務條款、隱私權政策、常見問題"
+        description="填寫內容後，網站最下方會自動出現對應連結；內容留空的頁面不會顯示連結。換行會照原樣顯示"
+      >
+        {([
+          ['terms', '服務條款'],
+          ['privacy', '隱私權政策'],
+          ['faq', '常見問題'],
+        ] as const).map(([key, label]) => (
+          <div key={key} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+            <span className="text-sm font-bold text-slate-800">{label}</span>
+            <TextField
+              label="頁面標題"
+              value={pages[key].title}
+              onChange={(v) => update((d) => { d.pages[key].title = v; })}
+            />
+            <Field label="內容">
+              <textarea
+                rows={8}
+                value={pages[key].body}
+                onChange={(e) => update((d) => { d.pages[key].body = e.target.value; })}
+                placeholder="貼上或輸入這個頁面的完整文字"
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        ))}
       </Card>
 
       <div className="sticky bottom-4 flex justify-end">

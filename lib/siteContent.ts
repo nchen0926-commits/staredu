@@ -23,6 +23,17 @@ export interface LegalLink {
   url: string;
 }
 
+export interface TestimonialItem {
+  imageUrl: string;
+  name: string;
+  quote: string;
+}
+
+export interface ContentPage {
+  title: string;
+  body: string;
+}
+
 export interface SiteContent {
   brand: {
     name: string;
@@ -58,6 +69,16 @@ export interface SiteContent {
     instagramUrl: string;
     youtubeUrl: string;
     legalLinks: LegalLink[];
+  };
+  testimonials: {
+    title: string;
+    subtitle: string;
+    items: TestimonialItem[];
+  };
+  pages: {
+    terms: ContentPage;
+    privacy: ContentPage;
+    faq: ContentPage;
   };
 }
 
@@ -125,16 +146,29 @@ export const defaultSiteContent: SiteContent = {
     facebookUrl: 'https://www.facebook.com/groups/963798131355327',
     instagramUrl: '',
     youtubeUrl: 'https://www.youtube.com/@richfromthestart',
-    legalLinks: [
-      { label: '服務條款', url: '' },
-      { label: '隱私權政策', url: '' },
-      { label: '常見問題', url: '' },
-    ],
+    legalLinks: [],
+  },
+  testimonials: {
+    title: '家長口碑',
+    subtitle: '來自家長與孩子的真實回饋',
+    items: [],
+  },
+  pages: {
+    terms: { title: '服務條款', body: '' },
+    privacy: { title: '隱私權政策', body: '' },
+    faq: { title: '常見問題', body: '' },
   },
 };
 
 const MAX_ITEMS = 20;
 const MAX_TEXT = 5000;
+const MAX_BODY = 30000;
+
+/** Item shape for list fields that start out empty (so there is no default item to copy). */
+const EMPTY_LIST_TEMPLATES: Record<string, unknown> = {
+  legalLinks: { label: '', url: '' },
+  items: { imageUrl: '', name: '', quote: '' },
+};
 
 /** Only allow links a visitor's browser can safely follow (no javascript: etc.). */
 export function safeUrl(value: string): string {
@@ -153,12 +187,14 @@ function isUrlKey(key: string): boolean {
 function merge(def: unknown, input: unknown, key = ''): unknown {
   if (typeof def === 'string') {
     if (typeof input !== 'string') return def;
-    const text = input.trim().slice(0, MAX_TEXT);
+    const text = input.trim().slice(0, key === 'body' ? MAX_BODY : MAX_TEXT);
     return isUrlKey(key) ? safeUrl(text) : text;
   }
   if (Array.isArray(def)) {
     if (!Array.isArray(input)) return def;
-    return input.slice(0, MAX_ITEMS).map((item) => merge(def[0], item, key));
+    const template = def.length > 0 ? def[0] : EMPTY_LIST_TEMPLATES[key];
+    if (template === undefined) return [];
+    return input.slice(0, MAX_ITEMS).map((item) => merge(template, item, key));
   }
   if (def && typeof def === 'object') {
     const source =

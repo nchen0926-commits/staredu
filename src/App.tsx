@@ -6,6 +6,7 @@ import PhysicalCourses from './pages/PhysicalCourses';
 import OnlineCourses from './pages/OnlineCourses';
 import Admin from './pages/Admin';
 import Success from './pages/Success';
+import ContentPage from './pages/ContentPage';
 
 export default function App() {
   return (
@@ -19,6 +20,9 @@ export default function App() {
             <Route path="/online-courses" element={<OnlineCourses />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/terms" element={<ContentPage pageKey="terms" />} />
+            <Route path="/privacy" element={<ContentPage pageKey="privacy" />} />
+            <Route path="/faq" element={<ContentPage pageKey="faq" />} />
           </Routes>
         </main>
         <Footer />
