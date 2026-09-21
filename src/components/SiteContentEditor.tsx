@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Plus, Trash2, Save, Upload, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Upload, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { resolveSiteContent, SiteContent } from '../../lib/siteContent';
 import { setSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
@@ -176,7 +176,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
 
   return (
     <div className="space-y-8">
-      <Card title="網站 Logo 與名稱" description="會顯示在網頁最上方的導覽列，以及最下方的頁尾">
+      <Card title="網站 Logo 與名稱" description="網頁最上方左邊：Logo 圖片＋右邊一行大字、一行小字（頁尾只顯示大字）">
         <div className="flex flex-col sm:flex-row gap-5 items-start">
           <div className="w-24 h-24 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
             <img
@@ -196,33 +196,97 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
               />
             </Field>
             <TextField
-              label="網站名稱"
+              label="大字（Logo 右邊第一行，網站名稱）"
               value={brand.name}
               onChange={(v) => update((d) => { d.brand.name = v; })}
+            />
+            <TextField
+              label="小字（Logo 右邊第二行）"
+              hint="留空就只顯示大字；手機版畫面太窄，小字會自動隱藏"
+              value={brand.tagline}
+              onChange={(v) => update((d) => { d.brand.tagline = v; })}
             />
           </div>
         </div>
       </Card>
 
-      <Card title="導覽列" description="網頁最上方的選單文字與右上角的橘色按鈕">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <TextField label="首頁" value={nav.homeLabel} onChange={(v) => update((d) => { d.nav.homeLabel = v; })} />
-          <TextField label="實體營隊選單" value={nav.physicalLabel} onChange={(v) => update((d) => { d.nav.physicalLabel = v; })} />
-          <TextField label="線上訂閱選單" value={nav.onlineLabel} onChange={(v) => update((d) => { d.nav.onlineLabel = v; })} />
+      <Card
+        title="上方選單"
+        description="網頁最上方右邊的選單，可以自由新增、刪除、調整順序；「連結」沒填的項目不會顯示"
+      >
+        <div className="space-y-3">
+          {nav.menu.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <div className="flex flex-col shrink-0">
+                <button
+                  type="button"
+                  disabled={idx === 0}
+                  onClick={() => update((d) => { const [m] = d.nav.menu.splice(idx, 1); d.nav.menu.splice(idx - 1, 0, m); })}
+                  className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:pointer-events-none"
+                  title="往前移"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={idx === nav.menu.length - 1}
+                  onClick={() => update((d) => { const [m] = d.nav.menu.splice(idx, 1); d.nav.menu.splice(idx + 1, 0, m); })}
+                  className="p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:pointer-events-none"
+                  title="往後移"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </div>
+              <input
+                type="text"
+                value={item.label}
+                onChange={(e) => update((d) => { d.nav.menu[idx].label = e.target.value; })}
+                placeholder="選單文字，例：實體課"
+                className={`${inputClass} sm:max-w-[14rem]`}
+              />
+              <input
+                type="text"
+                list="menu-link-options"
+                value={item.url}
+                onChange={(e) => update((d) => { d.nav.menu[idx].url = e.target.value; })}
+                placeholder="連結：點一下可以選，也可以貼 https://..."
+                className={inputClass}
+              />
+              <RemoveButton onClick={() => update((d) => { d.nav.menu.splice(idx, 1); })} />
+            </div>
+          ))}
+          <datalist id="menu-link-options">
+            <option value="/physical-courses">實體課程頁</option>
+            <option value="/online-courses">線上課程頁</option>
+            <option value="/#testimonials">首頁的家長口碑區塊</option>
+            <option value="/articles">文章列表頁</option>
+            <option value="/faq">常見問題頁</option>
+            <option value="/">首頁</option>
+          </datalist>
+          <AddButton onClick={() => update((d) => { d.nav.menu.push({ label: '', url: '' }); })}>
+            新增選單項目
+          </AddButton>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField
-            label="橘色按鈕文字"
-            hint="留空就不顯示這顆按鈕"
-            value={nav.memberLabel}
-            onChange={(v) => update((d) => { d.nav.memberLabel = v; })}
-          />
-          <TextField
-            label="橘色按鈕連結"
-            hint="例：/online-courses 或 https://..."
-            value={nav.memberUrl}
-            onChange={(v) => update((d) => { d.nav.memberUrl = v; })}
-          />
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <div>
+            <span className="text-sm font-bold text-slate-800">最右邊的橘色按鈕</span>
+            <p className="text-xs text-slate-400 mt-0.5">預留給之後的「會員中心」；文字和連結兩個都填了才會顯示</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField
+              label="按鈕文字"
+              placeholder="例：會員中心"
+              value={nav.memberLabel}
+              onChange={(v) => update((d) => { d.nav.memberLabel = v; })}
+            />
+            <TextField
+              label="按鈕連結"
+              placeholder="例：/member 或 https://..."
+              value={nav.memberUrl}
+              onChange={(v) => update((d) => { d.nav.memberUrl = v; })}
+            />
+          </div>
         </div>
       </Card>
 

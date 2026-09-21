@@ -25,3 +25,13 @@ export interface AppConfig {
   physicalBanner: string;
   onlineBanner: string;
 }
+
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  coverImage: string;
+  body: string;
+  published: boolean;
+  publishedAt: string;
+}

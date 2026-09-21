@@ -218,7 +218,7 @@ export default function Home() {
 
       {/* Parent testimonials */}
       {testimonials.items.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div id="testimonials" className="scroll-mt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{testimonials.title}</h2>
             {testimonials.subtitle && <p className="text-slate-500 mt-1">{testimonials.subtitle}</p>}

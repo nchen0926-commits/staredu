@@ -6,6 +6,8 @@ interface BrandLogoProps {
   iconSize?: number;
   textColor?: string;
   showText?: boolean;
+  showTagline?: boolean;
+  taglineColor?: string;
 }
 
 /**
@@ -58,6 +60,8 @@ export default function BrandLogo({
   iconSize = 52,
   textColor = 'text-slate-900',
   showText = true,
+  showTagline = false,
+  taglineColor = 'text-slate-500',
 }: BrandLogoProps) {
   const { content, loaded } = useSiteContent();
   return (
@@ -76,6 +80,14 @@ export default function BrandLogo({
           >
             {content.brand.name}
           </span>
+          {showTagline && content.brand.tagline && (
+            <span
+              className={`hidden sm:block mt-1.5 text-xs md:text-sm font-medium tracking-wide whitespace-nowrap leading-none ${taglineColor}`}
+              style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
+            >
+              {content.brand.tagline}
+            </span>
+          )}
         </div>
       )}
     </div>

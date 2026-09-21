@@ -232,3 +232,105 @@ export async function uploadSiteAsset(body: Buffer, contentType: string, path: s
 
   return client.storage.from(ASSET_BUCKET).getPublicUrl(path).data.publicUrl;
 }
+
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  coverImage: string;
+  body: string;
+  published: boolean;
+  publishedAt: string;
+}
+
+type ArticleRow = {
+  id: string;
+  title: string;
+  summary: string;
+  cover_image: string;
+  body: string;
+  published: boolean;
+  published_at: string;
+};
+
+function rowToArticle(row: ArticleRow): Article {
+  return {
+    id: row.id,
+    title: row.title,
+    summary: row.summary,
+    coverImage: row.cover_image,
+    body: row.body,
+    published: row.published,
+    publishedAt: row.published_at,
+  };
+}
+
+function articlesError(message: string): Error {
+  if (/could not find the table|does not exist|permission denied/i.test(message)) {
+    return new Error("尚未在 Supabase 建立「文章」資料表，請先執行 supabase/articles.sql");
+  }
+  return new Error(message);
+}
+
+export async function listArticles(onlyPublished: boolean): Promise<Article[]> {
+  const client = getClient();
+  let query = client.from("articles").select("*").order("published_at", { ascending: false });
+  if (onlyPublished) query = query.eq("published", true);
+  const { data, error } = await query;
+  if (error) throw articlesError(error.message);
+  return (data as ArticleRow[]).map(rowToArticle);
+}
+
+export async function getArticle(id: string): Promise<Article | null> {
+  const client = getClient();
+  const { data, error } = await client.from("articles").select("*").eq("id", id).maybeSingle();
+  if (error) throw articlesError(error.message);
+  return data ? rowToArticle(data as ArticleRow) : null;
+}
+
+export async function createArticle(input: Omit<Article, "id">): Promise<Article> {
+  const client = getClient();
+  const id = `art-${Date.now().toString(36)}`;
+  const { data, error } = await client
+    .from("articles")
+    .insert({
+      id,
+      title: input.title,
+      summary: input.summary,
+      cover_image: input.coverImage,
+      body: input.body,
+      published: input.published,
+      published_at: input.publishedAt,
+    })
+    .select("*")
+    .single();
+  if (error) throw articlesError(error.message);
+  return rowToArticle(data as ArticleRow);
+}
+
+export async function updateArticle(id: string, input: Omit<Article, "id">): Promise<Article | null> {
+  const client = getClient();
+  const { data, error } = await client
+    .from("articles")
+    .update({
+      title: input.title,
+      summary: input.summary,
+      cover_image: input.coverImage,
+      body: input.body,
+      published: input.published,
+      published_at: input.publishedAt,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
+  if (error) throw articlesError(error.message);
+  return data ? rowToArticle(data as ArticleRow) : null;
+}
+
+export async function deleteArticle(id: string): Promise<boolean> {
+  const client = getClient();
+  const { data, error } = await client.from("articles").delete().eq("id", id).select("id").maybeSingle();
+  if (error) throw articlesError(error.message);
+  return Boolean(data);
+}

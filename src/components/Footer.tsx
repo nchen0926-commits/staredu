@@ -6,7 +6,8 @@ import { useSiteContent } from '../hooks/useSiteContent';
 
 export default function Footer() {
   const { content } = useSiteContent();
-  const { footer, nav } = content;
+  const { footer } = content;
+  const menuLinks = content.nav.menu.filter((item) => item.label && item.url);
 
   const socialLinks = [
     { url: footer.facebookUrl, label: 'Facebook', Icon: Facebook },
@@ -47,9 +48,12 @@ export default function Footer() {
           <div>
             <h4 className="text-white font-bold mb-4">快速連結</h4>
             <ul className="space-y-2.5 font-medium">
-              <li><Link to="/" className="hover:text-amber-400 transition-colors">{nav.homeLabel}</Link></li>
-              <li><Link to="/physical-courses" className="hover:text-amber-400 transition-colors">{nav.physicalLabel}</Link></li>
-              <li><Link to="/online-courses" className="hover:text-amber-400 transition-colors">{nav.onlineLabel}</Link></li>
+              <li><Link to="/" className="hover:text-amber-400 transition-colors">首頁</Link></li>
+              {menuLinks.map((item) => (
+                <li key={item.label + item.url}>
+                  <SmartLink to={item.url} className="hover:text-amber-400 transition-colors">{item.label}</SmartLink>
+                </li>
+              ))}
               <li><Link to="/admin" className="hover:text-amber-400 transition-colors">後台管理</Link></li>
             </ul>
           </div>

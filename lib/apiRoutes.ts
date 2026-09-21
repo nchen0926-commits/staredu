@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import express from "express";
 import Stripe from "stripe";
-import { resolveSiteContent } from "./siteContent";
+import { resolveSiteContent, safeUrl } from "./siteContent";
 import {
   verifyAdminPassword,
   createSessionToken,
@@ -31,9 +31,11 @@ const getStripe = () => {
 export function createApiRouter(): express.Router {
   const router = express.Router();
 
+  const isAdmin = (req: express.Request) =>
+    verifySessionToken(parseCookies(req.headers.cookie)[SESSION_COOKIE_NAME]);
+
   const requireAdmin: express.RequestHandler = (req, res, next) => {
-    const cookies = parseCookies(req.headers.cookie);
-    if (verifySessionToken(cookies[SESSION_COOKIE_NAME])) {
+    if (isAdmin(req)) {
       return next();
     }
     res.status(401).json({ error: "需要管理員登入" });
@@ -122,6 +124,90 @@ export function createApiRouter(): express.Router {
       }
     }
   );
+
+  // --- Articles ---
+
+  const cleanArticle = (input: any) => {
+    const parsed = new Date(input?.publishedAt);
+    return {
+      title: String(input?.title ?? "").trim().slice(0, 200),
+      summary: String(input?.summary ?? "").trim().slice(0, 500),
+      coverImage: safeUrl(String(input?.coverImage ?? "")),
+      body: String(input?.body ?? "").slice(0, 50000),
+      published: Boolean(input?.published),
+      publishedAt: Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString(),
+    };
+  };
+
+  // Public list: published only, without the (large) body text.
+  router.get("/articles", async (req, res) => {
+    try {
+      const articles = await db.listArticles(true);
+      res.json(articles.map(({ body, ...rest }) => rest));
+    } catch (err) {
+      // Keep the public page working (empty) if the table isn't set up yet.
+      console.error("Load articles error:", err);
+      res.json([]);
+    }
+  });
+
+  router.get("/articles/:id", async (req, res) => {
+    try {
+      const article = await db.getArticle(req.params.id);
+      // Drafts are only visible to a logged-in admin (for previewing).
+      if (!article || (!article.published && !isAdmin(req))) {
+        return res.status(404).json({ error: "找不到這篇文章" });
+      }
+      res.json(article);
+    } catch (err: any) {
+      console.error("Load article error:", err);
+      res.status(500).json({ error: err?.message || "讀取文章失敗" });
+    }
+  });
+
+  router.get("/admin/articles", requireAdmin, async (req, res) => {
+    try {
+      res.json(await db.listArticles(false));
+    } catch (err: any) {
+      console.error("Admin load articles error:", err);
+      res.status(500).json({ error: err?.message || "讀取文章失敗" });
+    }
+  });
+
+  router.post("/articles", requireAdmin, async (req, res) => {
+    try {
+      const input = cleanArticle(req.body);
+      if (!input.title) return res.status(400).json({ error: "請填寫文章標題" });
+      res.json({ success: true, article: await db.createArticle(input) });
+    } catch (err: any) {
+      console.error("Article create error:", err);
+      res.status(500).json({ error: err?.message || "新增文章失敗" });
+    }
+  });
+
+  router.put("/articles/:id", requireAdmin, async (req, res) => {
+    try {
+      const input = cleanArticle(req.body);
+      if (!input.title) return res.status(400).json({ error: "請填寫文章標題" });
+      const article = await db.updateArticle(req.params.id, input);
+      if (!article) return res.status(404).json({ error: "找不到這篇文章" });
+      res.json({ success: true, article });
+    } catch (err: any) {
+      console.error("Article update error:", err);
+      res.status(500).json({ error: err?.message || "儲存文章失敗" });
+    }
+  });
+
+  router.delete("/articles/:id", requireAdmin, async (req, res) => {
+    try {
+      const removed = await db.deleteArticle(req.params.id);
+      if (!removed) return res.status(404).json({ error: "找不到這篇文章" });
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Article delete error:", err);
+      res.status(500).json({ error: err?.message || "刪除文章失敗" });
+    }
+  });
 
   // --- Config ---
 

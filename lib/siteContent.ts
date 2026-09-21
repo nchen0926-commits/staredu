@@ -18,6 +18,11 @@ export interface SectionHeading {
   linkText: string;
 }
 
+export interface MenuItem {
+  label: string;
+  url: string;
+}
+
 export interface LegalLink {
   label: string;
   url: string;
@@ -37,12 +42,11 @@ export interface ContentPage {
 export interface SiteContent {
   brand: {
     name: string;
+    tagline: string;
     logoUrl: string;
   };
   nav: {
-    homeLabel: string;
-    physicalLabel: string;
-    onlineLabel: string;
+    menu: MenuItem[];
     memberLabel: string;
     memberUrl: string;
   };
@@ -85,14 +89,21 @@ export interface SiteContent {
 export const defaultSiteContent: SiteContent = {
   brand: {
     name: '小管家兒童理財',
+    tagline: '兒童理財教育 × 實體營隊與線上課程',
     logoUrl: '',
   },
   nav: {
-    homeLabel: '首頁',
-    physicalLabel: '實體營隊 / 課程',
-    onlineLabel: '線上訂閱課程',
-    memberLabel: '會員中心',
-    memberUrl: '/online-courses',
+    // Items with an empty link are hidden until a link is filled in.
+    menu: [
+      { label: '關於我們', url: '/' },
+      { label: '我想上實體課', url: '/physical-courses' },
+      { label: '我需要線上課', url: '/online-courses' },
+      { label: '學員回饋', url: '/#testimonials' },
+      { label: '文章', url: '/articles' },
+    ],
+    // The orange button at the far right (planned: 會員中心). Hidden until both are filled in.
+    memberLabel: '',
+    memberUrl: '',
   },
   home: {
     advantages: [
