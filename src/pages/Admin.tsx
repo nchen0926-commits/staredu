@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { AppConfig, BannerItem, Course } from '../types';
-import { Plus, Trash2, Save, Image as ImageIcon, BookOpen, Tv, Layers, X, CheckCircle, AlertCircle, LogOut, Calendar, Info, ExternalLink, Link2, Settings, FileText } from 'lucide-react';
+import { Plus, Trash2, Save, Image as ImageIcon, BookOpen, Tv, Layers, X, CheckCircle, AlertCircle, LogOut, Calendar, Info, ExternalLink, Link2, Settings, FileText, Mail } from 'lucide-react';
 import { formatImageUrl } from '../utils/imageUtils';
 import BrandLogo from '../components/BrandLogo';
 import Seo from '../components/Seo';
 import ImageUploadField from '../components/ImageUploadField';
 import SiteContentEditor from '../components/SiteContentEditor';
 import ArticlesManager from '../components/ArticlesManager';
+import LeadsManager from '../components/LeadsManager';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,7 +30,7 @@ export default function Admin() {
   const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
   const [tagInput, setTagInput] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'banners' | 'physical' | 'online' | 'site' | 'articles'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'physical' | 'online' | 'site' | 'articles' | 'leads'>('banners');
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [isSavingCourse, setIsSavingCourse] = useState(false);
 
@@ -454,7 +455,22 @@ export default function Admin() {
         >
           <FileText className="w-4 h-4" /> 文章管理
         </button>
+        <button
+          onClick={() => setActiveTab('leads')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'leads'
+              ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/80'
+          }`}
+        >
+          <Mail className="w-4 h-4" /> 訂閱名單
+        </button>
       </div>
+
+      {/* Tab: Leads */}
+      {activeTab === 'leads' && (
+        <LeadsManager onToast={showToast} onUnauthorized={handleSessionExpired} />
+      )}
 
       {/* Tab: Articles */}
       {activeTab === 'articles' && (

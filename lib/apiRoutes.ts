@@ -242,6 +242,50 @@ export function createApiRouter(): express.Router {
     }
   });
 
+  // --- Email signups (lead capture popup) ---
+
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  router.post("/leads", async (req, res) => {
+    try {
+      const { email, source, website } = req.body || {};
+      // Honeypot: a real visitor never fills this hidden field. Pretend
+      // success so a bot can't tell it was rejected.
+      if (typeof website === "string" && website.trim()) {
+        return res.json({ success: true });
+      }
+      const cleaned = String(email ?? "").trim().toLowerCase();
+      if (!cleaned || cleaned.length > 200 || !EMAIL_PATTERN.test(cleaned)) {
+        return res.status(400).json({ error: "請輸入正確的 Email 格式" });
+      }
+      await db.createLead(cleaned, String(source ?? "").slice(0, 200));
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Lead create error:", err);
+      res.status(500).json({ error: err?.message || "送出失敗，請稍後再試" });
+    }
+  });
+
+  router.get("/admin/leads", requireAdmin, async (req, res) => {
+    try {
+      res.json(await db.listLeads());
+    } catch (err: any) {
+      console.error("Admin load leads error:", err);
+      res.status(500).json({ error: err?.message || "讀取名單失敗" });
+    }
+  });
+
+  router.delete("/admin/leads/:id", requireAdmin, async (req, res) => {
+    try {
+      const removed = await db.deleteLead(req.params.id);
+      if (!removed) return res.status(404).json({ error: "找不到這筆資料" });
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Lead delete error:", err);
+      res.status(500).json({ error: err?.message || "刪除失敗" });
+    }
+  });
+
   // --- Config ---
 
   router.get("/config", async (req, res) => {

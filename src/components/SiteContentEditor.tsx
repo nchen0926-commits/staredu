@@ -172,7 +172,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
     }
   };
 
-  const { brand, nav, home, physicalPage, onlinePage, footer, testimonials, pages } = data;
+  const { brand, nav, home, physicalPage, onlinePage, footer, testimonials, pages, leadCapture } = data;
 
   return (
     <div className="space-y-8">
@@ -532,6 +532,36 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
             </Field>
           </div>
         ))}
+      </Card>
+
+      <Card title="訂閱名單彈窗" description="訪客一進站會跳出的「留 Email」視窗；收集到的名單在後台「訂閱名單」分頁查看">
+        <label className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer w-fit">
+          <input
+            type="checkbox"
+            checked={leadCapture.enabled}
+            onChange={(e) => update((d) => { d.leadCapture.enabled = e.target.checked; })}
+            className="w-4 h-4 accent-amber-500"
+          />
+          <span className="text-sm font-bold text-slate-700">開啟彈窗（取消勾選就整個關掉，不會有人看到）</span>
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="標題" value={leadCapture.title} onChange={(v) => update((d) => { d.leadCapture.title = v; })} />
+          <TextField label="副標題（選填）" value={leadCapture.subtitle} onChange={(v) => update((d) => { d.leadCapture.subtitle = v; })} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="輸入框提示文字" value={leadCapture.placeholder} onChange={(v) => update((d) => { d.leadCapture.placeholder = v; })} />
+          <TextField label="按鈕文字" value={leadCapture.buttonText} onChange={(v) => update((d) => { d.leadCapture.buttonText = v; })} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="送出後的標題" value={leadCapture.successTitle} onChange={(v) => update((d) => { d.leadCapture.successTitle = v; })} />
+          <TextField label="送出後的說明文字" value={leadCapture.successMessage} onChange={(v) => update((d) => { d.leadCapture.successMessage = v; })} />
+        </div>
+        <TextField
+          label="小提醒文字（選填）"
+          hint="顯示在按鈕下方，用小字說明用途"
+          value={leadCapture.disclaimer}
+          onChange={(v) => update((d) => { d.leadCapture.disclaimer = v; })}
+        />
       </Card>
 
       <div className="sticky bottom-4 flex justify-end">

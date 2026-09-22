@@ -405,3 +405,53 @@ export async function incrementArticleViews(id: string): Promise<void> {
   const { error } = await client.rpc("increment_article_views", { article_id: id });
   if (error) console.error("Increment article views error:", error.message);
 }
+
+export interface Lead {
+  id: string;
+  email: string;
+  source: string;
+  createdAt: string;
+}
+
+type LeadRow = { id: string; email: string; source: string; created_at: string };
+
+function rowToLead(row: LeadRow): Lead {
+  return { id: row.id, email: row.email, source: row.source, createdAt: row.created_at };
+}
+
+function leadsError(message: string): Error {
+  if (/could not find the table|does not exist|permission denied/i.test(message)) {
+    return new Error("尚未在 Supabase 建立「訂閱名單」資料表，請先執行 supabase/leads.sql");
+  }
+  return new Error(message);
+}
+
+/** Returns false if this email was already on the list (still not an error — the visitor sees success either way). */
+export async function createLead(email: string, source: string): Promise<boolean> {
+  const client = getClient();
+  const id = `lead-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const { error } = await client
+    .from("leads")
+    .insert({ id, email, source })
+    .select("id")
+    .single();
+  if (error) {
+    if (error.code === "23505") return false; // unique violation: already subscribed
+    throw leadsError(error.message);
+  }
+  return true;
+}
+
+export async function listLeads(): Promise<Lead[]> {
+  const client = getClient();
+  const { data, error } = await client.from("leads").select("*").order("created_at", { ascending: false });
+  if (error) throw leadsError(error.message);
+  return (data as LeadRow[]).map(rowToLead);
+}
+
+export async function deleteLead(id: string): Promise<boolean> {
+  const client = getClient();
+  const { data, error } = await client.from("leads").delete().eq("id", id).select("id").maybeSingle();
+  if (error) throw leadsError(error.message);
+  return Boolean(data);
+}

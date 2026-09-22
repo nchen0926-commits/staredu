@@ -10,6 +10,7 @@ import Success from './pages/Success';
 import ContentPage from './pages/ContentPage';
 import Articles from './pages/Articles';
 import ArticleDetail from './pages/ArticleDetail';
+import LeadCapturePopup from './components/LeadCapturePopup';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -53,6 +54,7 @@ export default function App() {
           </Routes>
         </main>
         <Footer />
+        <LeadCapturePopup />
       </div>
     </BrowserRouter>
   );

@@ -86,6 +86,16 @@ export interface SiteContent {
     privacy: ContentPage;
     faq: ContentPage;
   };
+  leadCapture: {
+    enabled: boolean;
+    title: string;
+    subtitle: string;
+    placeholder: string;
+    buttonText: string;
+    successTitle: string;
+    successMessage: string;
+    disclaimer: string;
+  };
 }
 
 export const defaultSiteContent: SiteContent = {
@@ -174,6 +184,16 @@ export const defaultSiteContent: SiteContent = {
     privacy: { title: '隱私權政策', body: '' },
     faq: { title: '常見問題', body: '' },
   },
+  leadCapture: {
+    enabled: true,
+    title: '加入我們的訂閱名單',
+    subtitle: '掌握最新營隊資訊與理財教育文章',
+    placeholder: '請輸入你的 Email',
+    buttonText: '訂閱',
+    successTitle: '訂閱成功！',
+    successMessage: '謝謝你，我們有新消息會通知你。',
+    disclaimer: '我們僅用於通知課程與活動最新消息，不會有其他用途。',
+  },
 };
 
 const MAX_ITEMS = 20;
@@ -210,6 +230,9 @@ function isUrlKey(key: string): boolean {
 }
 
 function merge(def: unknown, input: unknown, key = ''): unknown {
+  if (typeof def === 'boolean') {
+    return typeof input === 'boolean' ? input : def;
+  }
   if (typeof def === 'string') {
     if (typeof input !== 'string') return def;
     const text = input.trim().slice(0, key === 'body' ? MAX_BODY : MAX_TEXT);
