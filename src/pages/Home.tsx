@@ -58,7 +58,7 @@ export default function Home() {
       />
       <h1 className="sr-only">{brand.name}：兒童理財教育實體營隊與線上訂閱課程</h1>
       {/* Hero Carousel */}
-      <div className="relative w-full aspect-21/9 md:aspect-24/9 max-h-[520px] overflow-hidden bg-slate-900 shadow-lg">
+      <div className="relative w-full aspect-16/9 md:aspect-21/9 max-h-[280px] overflow-hidden bg-slate-900 shadow-lg">
         {banners.map((banner, idx) => {
           const isExternal = banner.linkUrl?.startsWith('http://') || banner.linkUrl?.startsWith('https://');
           const hasLink = Boolean(banner.linkUrl?.trim());
