@@ -2,6 +2,7 @@ import crypto from "crypto";
 import express from "express";
 import Stripe from "stripe";
 import { resolveSiteContent, safeUrl } from "./siteContent";
+import { syncLeadToMailerLite } from "./mailerlite";
 import {
   verifyAdminPassword,
   createSessionToken,
@@ -259,6 +260,8 @@ export function createApiRouter(): express.Router {
         return res.status(400).json({ error: "請輸入正確的 Email 格式" });
       }
       await db.createLead(cleaned, String(source ?? "").slice(0, 200));
+      // Best-effort: MailerLite being down must not fail the visitor's own signup.
+      await syncLeadToMailerLite(cleaned);
       res.json({ success: true });
     } catch (err: any) {
       console.error("Lead create error:", err);
