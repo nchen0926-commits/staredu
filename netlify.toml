@@ -28,6 +28,7 @@
   from = "/faq"
   to = "/.netlify/functions/seo?route=faq"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/sitemap.xml"
