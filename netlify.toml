@@ -25,6 +25,11 @@
   status = 200
 
 [[redirects]]
+  from = "/faq"
+  to = "/.netlify/functions/seo?route=faq"
+  status = 200
+
+[[redirects]]
   from = "/sitemap.xml"
   to = "/.netlify/functions/seo?route=sitemap"
   status = 200

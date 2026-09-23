@@ -1,10 +1,11 @@
 import * as db from "../../lib/db";
 import { resolveSiteContent, safeUrl } from "../../lib/siteContent";
-import { descriptionFromHtml, escapeHtml, htmlToSemantic, renderPage } from "../../lib/seoRender";
+import { descriptionFromHtml, escapeHtml, htmlToSemantic, parseFaq, renderPage } from "../../lib/seoRender";
 
 /**
  * Server-rendered output for what search engines and AI crawlers read:
  *   /articles, /articles/:key  -> real HTML, meta tags and structured data
+ *   /faq                       -> Q&A HTML + FAQPage structured data
  *   /sitemap.xml               -> generated from the live articles
  *   /llms.txt                  -> plain-language site guide for AI assistants
  * Everything else about the site is still the normal client-side app; if
@@ -31,6 +32,7 @@ type Route =
   | { type: "llms" }
   | { type: "articles" }
   | { type: "article"; key: string }
+  | { type: "faq" }
   | { type: "unknown" };
 
 function resolveRoute(event: NetlifyEvent): Route {
@@ -51,6 +53,7 @@ function resolveRoute(event: NetlifyEvent): Route {
     }
     if (path === "/sitemap.xml") return { type: "sitemap" };
     if (path === "/llms.txt") return { type: "llms" };
+    if (path === "/faq") return { type: "faq" };
     if (/^\/articles\/?$/.test(path)) return { type: "articles" };
     const match = path.match(/^\/articles\/([^/]+)\/?$/);
     if (match) return { type: "article", key: match[1] };
@@ -60,6 +63,7 @@ function resolveRoute(event: NetlifyEvent): Route {
   if (hint === "sitemap") return { type: "sitemap" };
   if (hint === "llms") return { type: "llms" };
   if (hint === "articles") return { type: "articles" };
+  if (hint === "faq") return { type: "faq" };
   return { type: "unknown" };
 }
 
@@ -173,6 +177,50 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
               hasPart: articles.slice(0, 50).map((a) => ({ "@type": "Article", headline: a.title, url: articleUrl(a) })),
             },
           ],
+        })
+      );
+    }
+
+    if (route.type === "faq") {
+      const page = content.pages.faq;
+      const items = parseFaq(page.body);
+      const description = descriptionFromHtml(page.body) || `${brand}的常見問題`;
+
+      // The admin writes plain "Q：...\nA：..." text, not a structured form —
+      // when it doesn't parse into pairs, fall back to rendering it as plain
+      // paragraphs (still real content for crawlers, just no FAQPage schema).
+      const bodyHtml = wrap(
+        `<h1>${escapeHtml(page.title)}</h1>` +
+          (items.length > 0
+            ? `<dl>${items.map((i) => `<dt>${escapeHtml(i.question)}</dt><dd>${escapeHtml(i.answer)}</dd>`).join("")}</dl>`
+            : page.body
+              ? htmlToSemantic(page.body)
+              : "<p>內容準備中，敬請期待。</p>")
+      );
+
+      return html(
+        200,
+        renderPage(template, {
+          title: `${page.title} | ${brand}`,
+          description,
+          canonical: `${SITE}/faq`,
+          ogType: "website",
+          bodyHtml,
+          noindex: !page.body,
+          jsonLd:
+            items.length > 0
+              ? [
+                  {
+                    "@context": "https://schema.org",
+                    "@type": "FAQPage",
+                    mainEntity: items.map((i) => ({
+                      "@type": "Question",
+                      name: i.question,
+                      acceptedAnswer: { "@type": "Answer", text: i.answer },
+                    })),
+                  },
+                ]
+              : undefined,
         })
       );
     }

@@ -20,6 +20,32 @@ export function isHtml(text: string): boolean {
   return /<(p|h[1-6]|ul|ol|li|div|br|img|strong|b|em|span|blockquote|a)[\s>/]/i.test(text);
 }
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/**
+ * Pulls "Q...：...A：..." pairs out of the free-text 常見問題 content
+ * (admin writes plain text, not a structured form) so it can be marked up
+ * as real Q&A HTML and FAQPage JSON-LD. Any section headers or other text
+ * between pairs (e.g. "一、關於課程") are simply not matched and ignored.
+ * Returns [] if the text doesn't follow this pattern.
+ */
+export function parseFaq(body: string): FaqItem[] {
+  // The answer stops at a blank line (paragraph break), the next question,
+  // or the end — not just the next "Q", so a section header like "二、心態與
+  // 實踐" sitting between pairs doesn't get swallowed into the prior answer.
+  const pattern = /Q\d*[：:]\s*([^\n]+)\n\s*A\d*[：:]\s*([^\n]+)(?=\n\s*\n|\n\s*Q\d*[：:]|\s*$)/g;
+  const items: FaqItem[] = [];
+  for (const match of body.matchAll(pattern)) {
+    const question = match[1].trim();
+    const answer = match[2].trim();
+    if (question && answer) items.push({ question, answer });
+  }
+  return items;
+}
+
 function readAttr(attrs: string, name: string): string {
   const match = attrs.match(new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i'));
   return match ? (match[1] ?? match[2] ?? '') : '';
@@ -108,6 +134,7 @@ export interface PageMeta {
   bodyHtml: string;
   publishedTime?: string;
   modifiedTime?: string;
+  noindex?: boolean;
 }
 
 function upsertMeta(html: string, attr: 'name' | 'property', key: string, content: string): string {
@@ -135,6 +162,7 @@ export function renderPage(template: string, meta: PageMeta): string {
   }
   if (meta.publishedTime) html = upsertMeta(html, 'property', 'article:published_time', meta.publishedTime);
   if (meta.modifiedTime) html = upsertMeta(html, 'property', 'article:modified_time', meta.modifiedTime);
+  if (meta.noindex) html = upsertMeta(html, 'name', 'robots', 'noindex, nofollow');
 
   const canonicalTag = `<link rel="canonical" href="${escapeHtml(meta.canonical)}" />`;
   html = /<link\s+rel="canonical"[^>]*>/i.test(html)
