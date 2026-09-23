@@ -11,6 +11,7 @@ import ContentPage from './pages/ContentPage';
 import Articles from './pages/Articles';
 import ArticleDetail from './pages/ArticleDetail';
 import LeadCapturePopup from './components/LeadCapturePopup';
+import Analytics from './components/Analytics';
 
 function ScrollToHash() {
   const { pathname, hash } = useLocation();
@@ -37,6 +38,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToHash />
+      <Analytics />
       <div className="min-h-screen flex flex-col font-sans bg-slate-50">
         <Navbar />
         <main className="flex-grow">

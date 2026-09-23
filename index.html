@@ -18,6 +18,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N1CWLT02HY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      // send_page_view is off here — this is a single-page app, so
+      // src/components/Analytics.tsx sends one page_view per route
+      // (including the first) once the router knows the real path.
+      gtag('config', 'G-N1CWLT02HY', { send_page_view: false });
+    </script>
   </head>
   <body class="font-sans antialiased text-slate-900 bg-slate-50">
     <div id="root"></div>
