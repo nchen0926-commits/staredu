@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Course } from '../types';
+import Seo from '../components/Seo';
 import { CheckCircle2, ArrowRight, BookOpen, Calendar, MapPin, Sparkles } from 'lucide-react';
 
 export default function Success() {
@@ -30,6 +31,7 @@ export default function Success() {
 
   return (
     <div className="min-h-[75vh] flex items-center justify-center px-4 py-16">
+      <Seo title="報名完成" description="報名成功確認頁" noindex />
       <div className="max-w-lg w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-100 shadow-xl text-center space-y-6">
         <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
           <CheckCircle2 className="w-12 h-12" />

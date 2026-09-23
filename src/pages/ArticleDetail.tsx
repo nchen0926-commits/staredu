@@ -11,6 +11,7 @@ export default function ArticleDetail() {
   const { id } = useParams();
   const [article, setArticle] = useState<Article | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'missing'>('loading');
+  const [related, setRelated] = useState<Article[]>([]);
 
   useEffect(() => {
     setState('loading');
@@ -19,6 +20,12 @@ export default function ArticleDetail() {
       .then((data: Article) => {
         setArticle(data);
         setState('ready');
+        // A few other articles to link to, so every article page links onward
+        // even if the author didn't add links inside the text itself.
+        fetch('/api/articles')
+          .then((res) => (res.ok ? res.json() : []))
+          .then((all: Article[]) => setRelated(all.filter((a) => a.id !== data.id).slice(0, 3)))
+          .catch(() => setRelated([]));
         // Count one view per browser session (the server ignores you when you're logged in as admin).
         const viewedKey = `viewed:${data.id}`;
         try {
@@ -80,6 +87,37 @@ export default function ArticleDetail() {
           )}
           <ArticleBody body={article.body} />
         </article>
+      )}
+
+      {state === 'ready' && related.length > 0 && (
+        <div className="mt-14 pt-10 border-t border-slate-100">
+          <h2 className="text-lg font-black text-slate-900 mb-5">你可能也會喜歡</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {related.map((item) => (
+              <Link
+                key={item.id}
+                to={`/articles/${item.slug || item.id}`}
+                className="group block bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              >
+                {item.coverImage && (
+                  <div className="aspect-16/10 overflow-hidden bg-slate-100">
+                    <img
+                      src={formatImageUrl(item.coverImage)}
+                      alt={item.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-amber-600 transition-colors">
+                    {item.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

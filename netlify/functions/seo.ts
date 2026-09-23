@@ -94,8 +94,12 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
     if (route.type === "sitemap") {
       const articles = await db.listArticles(true).catch(() => [] as db.Article[]);
       const pages = ["/", "/physical-courses", "/online-courses", "/articles"];
+      // Legal pages only once there's real content — matches the footer, which
+      // hides these links until the admin fills them in.
+      const legalPages = (["terms", "privacy", "faq"] as const).filter((key) => content.pages[key].body);
       const urls = [
         ...pages.map((p) => `  <url><loc>${SITE}${p === "/" ? "/" : p}</loc></url>`),
+        ...legalPages.map((key) => `  <url><loc>${SITE}/${key}</loc></url>`),
         ...articles.map((a) => `  <url><loc>${escapeHtml(articleUrl(a))}</loc><lastmod>${day(a.updatedAt)}</lastmod></url>`),
       ];
       return {
