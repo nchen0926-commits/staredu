@@ -26,7 +26,10 @@
 
 [[redirects]]
   from = "/faq"
-  to = "/.netlify/functions/seo?route=faq"
+  # &v=1 makes this a URL the edge has never cached before (it was a plain
+  # static page until today, and force=true alone didn't bypass that old
+  # cached response — this sidesteps it with a fresh cache key instead).
+  to = "/.netlify/functions/seo?route=faq&v=1"
   status = 200
   force = true
 
