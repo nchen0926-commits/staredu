@@ -130,6 +130,7 @@ export function createApiRouter(): express.Router {
 
   const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   const BOT_AGENT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i;
+  const ARTICLE_CATEGORIES = new Set(["大人理財", "兒童理財", "企業永續", "金融科技"]);
 
   // Returns the cleaned article, or a message describing what is wrong.
   const parseArticle = (input: any): db.ArticleInput | string => {
@@ -150,15 +151,18 @@ export function createApiRouter(): express.Router {
       author: String(input?.author ?? "").trim().slice(0, 60),
       coverImage: safeUrl(String(input?.coverImage ?? "")),
       body: String(input?.body ?? "").slice(0, 200000),
+      category: ARTICLE_CATEGORIES.has(String(input?.category ?? "")) ? String(input.category) : "",
       published: Boolean(input?.published),
       publishedAt: Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString(),
     };
   };
 
   // Public list: only articles that are live (published and their time has come), no body text.
+  // ?category= filters to one of ARTICLE_CATEGORIES (used by 大人的理財／理財文章 pages).
   router.get("/articles", async (req, res) => {
     try {
-      const articles = await db.listArticles(true);
+      const { category } = req.query;
+      const articles = await db.listArticles(true, typeof category === "string" ? category : undefined);
       res.json(articles.map(({ body, viewCount, ...rest }) => rest));
     } catch (err) {
       // Keep the public page working (empty) if the table isn't set up yet.
@@ -285,6 +289,70 @@ export function createApiRouter(): express.Router {
       res.json({ success: true });
     } catch (err: any) {
       console.error("Lead delete error:", err);
+      res.status(500).json({ error: err?.message || "刪除失敗" });
+    }
+  });
+
+  // --- Enterprise inquiries (企業永續合作 contact form) ---
+
+  // Must match enterprisePage.services' three titles in lib/siteContent.ts.
+  const COOPERATION_TYPES = new Set(["員工財務素養講座", "系列式員工財務素養課", "客製化金融素養內容"]);
+
+  router.post("/enterprise-inquiry", async (req, res) => {
+    try {
+      const { companyName, contactName, email, phone, participants, cooperationTypes, topicNeeds, preferredTiming, otherNotes, website } = req.body || {};
+      // Honeypot, same pattern as /leads: a real visitor never fills this hidden field.
+      if (typeof website === "string" && website.trim()) {
+        return res.json({ success: true });
+      }
+
+      const cleanedCompany = String(companyName ?? "").trim().slice(0, 200);
+      const cleanedContact = String(contactName ?? "").trim().slice(0, 100);
+      const cleanedEmail = String(email ?? "").trim().toLowerCase().slice(0, 200);
+      const cleanedPhone = String(phone ?? "").trim().slice(0, 50);
+      if (!cleanedCompany) return res.status(400).json({ error: "請填寫公司名稱" });
+      if (!cleanedContact) return res.status(400).json({ error: "請填寫聯絡人姓名" });
+      if (!cleanedEmail || !EMAIL_PATTERN.test(cleanedEmail)) return res.status(400).json({ error: "請輸入正確的 Email 格式" });
+      if (!cleanedPhone) return res.status(400).json({ error: "請填寫聯絡電話" });
+
+      const cleanedTypes = Array.isArray(cooperationTypes)
+        ? cooperationTypes.map((t) => String(t)).filter((t) => COOPERATION_TYPES.has(t))
+        : [];
+
+      await db.createEnterpriseInquiry({
+        companyName: cleanedCompany,
+        contactName: cleanedContact,
+        email: cleanedEmail,
+        phone: cleanedPhone,
+        participants: String(participants ?? "").trim().slice(0, 100),
+        cooperationTypes: cleanedTypes,
+        topicNeeds: String(topicNeeds ?? "").trim().slice(0, 1000),
+        preferredTiming: String(preferredTiming ?? "").trim().slice(0, 200),
+        otherNotes: String(otherNotes ?? "").trim().slice(0, 1000),
+      });
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Enterprise inquiry create error:", err);
+      res.status(500).json({ error: err?.message || "送出失敗，請稍後再試" });
+    }
+  });
+
+  router.get("/admin/enterprise-inquiries", requireAdmin, async (req, res) => {
+    try {
+      res.json(await db.listEnterpriseInquiries());
+    } catch (err: any) {
+      console.error("Admin load enterprise inquiries error:", err);
+      res.status(500).json({ error: err?.message || "讀取企業洽詢名單失敗" });
+    }
+  });
+
+  router.delete("/admin/enterprise-inquiries/:id", requireAdmin, async (req, res) => {
+    try {
+      const removed = await db.deleteEnterpriseInquiry(req.params.id);
+      if (!removed) return res.status(404).json({ error: "找不到這筆資料" });
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Enterprise inquiry delete error:", err);
       res.status(500).json({ error: err?.message || "刪除失敗" });
     }
   });

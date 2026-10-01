@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
+import AdultFinance from './pages/AdultFinance';
+import KidsFinance from './pages/KidsFinance';
+import Enterprise from './pages/Enterprise';
 import PhysicalCourses from './pages/PhysicalCourses';
 import OnlineCourses from './pages/OnlineCourses';
 import Admin from './pages/Admin';
@@ -44,6 +47,9 @@ export default function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/adult-finance" element={<AdultFinance />} />
+            <Route path="/kids-finance" element={<KidsFinance />} />
+            <Route path="/enterprise" element={<Enterprise />} />
             <Route path="/physical-courses" element={<PhysicalCourses />} />
             <Route path="/online-courses" element={<OnlineCourses />} />
             <Route path="/admin" element={<Admin />} />

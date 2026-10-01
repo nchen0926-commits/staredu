@@ -37,6 +37,7 @@ export interface Article {
   author: string;
   coverImage: string;
   body: string;
+  category: string;
   published: boolean;
   publishedAt: string;
   updatedAt: string;

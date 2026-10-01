@@ -21,9 +21,12 @@ interface ArticleForm {
   author: string;
   coverImage: string;
   body: string;
+  category: string;
   published: boolean;
   publishedLocal: string; // Taipei time, "YYYY-MM-DDTHH:mm"
 }
+
+const CATEGORIES = ['大人理財', '兒童理財', '企業永續', '金融科技'];
 
 type Status = 'draft' | 'scheduled' | 'live';
 
@@ -54,6 +57,7 @@ const toForm = (article: Article): ArticleForm => ({
   author: article.author,
   coverImage: article.coverImage,
   body: article.body,
+  category: article.category,
   published: article.published,
   publishedLocal: toTaipeiLocal(new Date(article.publishedAt)),
 });
@@ -96,6 +100,7 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
       author: '',
       coverImage: '',
       body: '',
+      category: '',
       published: false,
       publishedLocal: toTaipeiLocal(new Date()),
     });
@@ -124,6 +129,7 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
           author: form.author,
           coverImage: form.coverImage,
           body: sanitizeArticleHtml(form.body),
+          category: form.category,
           published: form.published,
           publishedAt: localToIso(form.publishedLocal),
         }),
@@ -189,6 +195,22 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
             className={inputClass}
             required
           />
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            分類<span className="ml-2 font-normal text-slate-400">決定文章顯示在「大人的理財」等哪個頁面、也用於文章頁的分類篩選</span>
+          </label>
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className={inputClass}
+          >
+            <option value="">未分類</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
 
         <div>

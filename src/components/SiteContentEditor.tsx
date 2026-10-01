@@ -128,7 +128,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
     try {
       for (const file of files) {
         const url = await uploadImage(file);
-        update((d) => { d.testimonials.items.push({ imageUrl: url, name: '', quote: '' }); });
+        update((d) => { d.testimonials.items.push({ imageUrl: url, name: '', quote: '', activityName: '', date: '', segment: 'kids' }); });
         added += 1;
       }
       onToast(`已加入 ${added} 張截圖，記得按最下方的「儲存網站內容」`);
@@ -172,7 +172,12 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
     }
   };
 
-  const { brand, nav, home, physicalPage, onlinePage, footer, testimonials, pages, leadCapture } = data;
+  const { brand, nav, home, kidsPage, adultPage, enterprisePage, footer, testimonials, pages, leadCapture } = data;
+  const SEGMENT_OPTIONS: Array<{ value: SiteContent['testimonials']['items'][number]['segment']; label: string }> = [
+    { value: 'kids', label: '小管家兒童理財' },
+    { value: 'adult', label: '大人的理財' },
+    { value: 'enterprise', label: '企業永續合作' },
+  ];
 
   return (
     <div className="space-y-8">
@@ -256,12 +261,15 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
             </div>
           ))}
           <datalist id="menu-link-options">
-            <option value="/physical-courses">實體課程頁</option>
-            <option value="/online-courses">線上課程頁</option>
-            <option value="/#testimonials">首頁的家長口碑區塊</option>
-            <option value="/articles">文章列表頁</option>
-            <option value="/faq">常見問題頁</option>
             <option value="/">首頁</option>
+            <option value="/adult-finance">大人的理財頁</option>
+            <option value="/kids-finance">小管家兒童理財頁</option>
+            <option value="/enterprise">企業永續合作頁</option>
+            <option value="/physical-courses">實體課程頁（舊網址，仍可用）</option>
+            <option value="/online-courses">線上課程頁（舊網址，仍可用）</option>
+            <option value="/#testimonials">首頁的學員與活動成果區塊</option>
+            <option value="/articles">理財文章列表頁</option>
+            <option value="/faq">常見問題頁</option>
           </datalist>
           <AddButton onClick={() => update((d) => { d.nav.menu.push({ label: '', url: '' }); })}>
             新增選單項目
@@ -290,36 +298,46 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         </div>
       </Card>
 
-      <Card title="首頁" description="首頁輪播圖下方的介紹卡片與兩個課程區塊的標題（輪播圖請到「橫幅圖片設置」修改）">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-800">介紹卡片</span>
-            <AddButton onClick={() => update((d) => { d.home.advantages.push({ title: '', description: '' }); })}>
-              新增一張卡片
-            </AddButton>
-          </div>
-          {home.advantages.map((item, idx) => (
-            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">卡片 #{idx + 1}</span>
-                <RemoveButton onClick={() => update((d) => { d.home.advantages.splice(idx, 1); })} />
-              </div>
-              <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.home.advantages[idx].title = v; })} />
-              <Field label="說明">
-                <textarea
-                  rows={2}
-                  value={item.description}
-                  onChange={(e) => update((d) => { d.home.advantages[idx].description = e.target.value; })}
-                  className={inputClass}
-                />
-              </Field>
-            </div>
-          ))}
+      <Card title="首頁" description="首頁的標題、三大服務入口卡片、企業合作橫幅與「關於星育學苑」文字（輪播圖請到「橫幅圖片設置」修改）">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="主標題">
+            <textarea rows={2} value={home.heroTitle} onChange={(e) => update((d) => { d.home.heroTitle = e.target.value; })} className={inputClass} />
+          </Field>
+          <Field label="副標題">
+            <textarea rows={2} value={home.heroSubtitle} onChange={(e) => update((d) => { d.home.heroSubtitle = e.target.value; })} className={inputClass} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="「大人的理財」按鈕文字" value={home.heroCtaAdult} onChange={(v) => update((d) => { d.home.heroCtaAdult = v; })} />
+          <TextField label="「小管家兒童理財」按鈕文字" value={home.heroCtaKids} onChange={(v) => update((d) => { d.home.heroCtaKids = v; })} />
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">品牌洞察區塊</span>
+          <TextField label="標題" value={home.insightTitle} onChange={(v) => update((d) => { d.home.insightTitle = v; })} />
+          <Field label="內文">
+            <textarea rows={4} value={home.insightBody} onChange={(e) => update((d) => { d.home.insightBody = e.target.value; })} className={inputClass} />
+          </Field>
         </div>
 
         {([
-          ['physicalSection', '實體營隊區塊'],
-          ['onlineSection', '線上訂閱區塊'],
+          ['entryAdult', '入口卡片：大人的理財'],
+          ['entryKids', '入口卡片：小管家兒童理財'],
+          ['entryEnterprise', '入口卡片：企業永續合作'],
+        ] as const).map(([key, title]) => (
+          <div key={key} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+            <span className="text-sm font-bold text-slate-800">{title}</span>
+            <TextField label="標題" value={home[key].title} onChange={(v) => update((d) => { d.home[key].title = v; })} />
+            <Field label="說明">
+              <textarea rows={2} value={home[key].description} onChange={(e) => update((d) => { d.home[key].description = e.target.value; })} className={inputClass} />
+            </Field>
+            <TextField label="按鈕文字" value={home[key].ctaText} onChange={(v) => update((d) => { d.home[key].ctaText = v; })} />
+          </div>
+        ))}
+
+        {([
+          ['coursesSection', '熱門課程區塊'],
+          ['articlesSection', '理財文章區塊'],
         ] as const).map(([key, title]) => (
           <div key={key} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
             <span className="text-sm font-bold text-slate-800">{title}</span>
@@ -330,36 +348,198 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
             </div>
           </div>
         ))}
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">企業合作橫幅</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="小標" value={home.enterpriseBanner.subtitle} onChange={(v) => update((d) => { d.home.enterpriseBanner.subtitle = v; })} />
+            <TextField label="標題" value={home.enterpriseBanner.title} onChange={(v) => update((d) => { d.home.enterpriseBanner.title = v; })} />
+          </div>
+          <Field label="說明">
+            <textarea rows={2} value={home.enterpriseBanner.description} onChange={(e) => update((d) => { d.home.enterpriseBanner.description = e.target.value; })} className={inputClass} />
+          </Field>
+          <TextField label="按鈕文字" value={home.enterpriseBanner.ctaText} onChange={(v) => update((d) => { d.home.enterpriseBanner.ctaText = v; })} />
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">關於星育學苑</span>
+          <TextField label="標題" value={home.aboutTitle} onChange={(v) => update((d) => { d.home.aboutTitle = v; })} />
+          <Field label="內文">
+            <textarea rows={5} value={home.aboutBody} onChange={(e) => update((d) => { d.home.aboutBody = e.target.value; })} className={inputClass} />
+          </Field>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">學員與活動成果區塊（彙整三條產品線的口碑，內容在下方「學員與活動成果」設定）</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="標題" value={home.storiesTitle} onChange={(v) => update((d) => { d.home.storiesTitle = v; })} />
+            <TextField label="說明（選填）" value={home.storiesSubtitle} onChange={(v) => update((d) => { d.home.storiesSubtitle = v; })} />
+          </div>
+        </div>
       </Card>
 
-      <Card title="課程頁面" description="「實體營隊 / 課程」與「線上訂閱課程」兩個頁面的標題文字">
-        <TextField
-          label="實體營隊頁標題"
-          value={physicalPage.title}
-          onChange={(v) => update((d) => { d.physicalPage.title = v; })}
-        />
+      <Card title="小管家兒童理財" description="兒童理財頁的標題與內文（課程資料在「實體課程」「線上課程」分頁管理）">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="主標題" value={kidsPage.heroTitle} onChange={(v) => update((d) => { d.kidsPage.heroTitle = v; })} />
+          <TextField label="副標題" value={kidsPage.heroSubtitle} onChange={(v) => update((d) => { d.kidsPage.heroSubtitle = v; })} />
+        </div>
+        {([
+          ['philosophyTitle', 'philosophyBody', '品牌理念'],
+          ['whyTitle', 'whyBody', '為什麼孩子需要金融素養'],
+          ['featuresTitle', 'featuresBody', '原創故事特色'],
+        ] as const).map(([titleKey, bodyKey, label]) => (
+          <div key={titleKey} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+            <span className="text-sm font-bold text-slate-800">{label}</span>
+            <TextField label="標題" value={kidsPage[titleKey]} onChange={(v) => update((d) => { d.kidsPage[titleKey] = v; })} />
+            <Field label="內文">
+              <textarea rows={3} value={kidsPage[bodyKey]} onChange={(e) => update((d) => { d.kidsPage[bodyKey] = e.target.value; })} className={inputClass} />
+            </Field>
+          </div>
+        ))}
+        <TextField label="課程區塊標題" value={kidsPage.coursesTitle} onChange={(v) => update((d) => { d.kidsPage.coursesTitle = v; })} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="學員回饋區塊標題" value={kidsPage.storiesTitle} onChange={(v) => update((d) => { d.kidsPage.storiesTitle = v; })} />
+          <TextField label="學員回饋區塊說明（選填）" value={kidsPage.storiesSubtitle} onChange={(v) => update((d) => { d.kidsPage.storiesSubtitle = v; })} />
+        </div>
+        <TextField label="底部報名按鈕文字" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
+      </Card>
+
+      <Card title="大人的理財" description="成人理財頁的標題、需求分流卡片、文章區塊標題與課程籌備區塊">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="主標題">
+            <textarea rows={2} value={adultPage.heroTitle} onChange={(e) => update((d) => { d.adultPage.heroTitle = e.target.value; })} className={inputClass} />
+          </Field>
+          <Field label="副標題">
+            <textarea rows={2} value={adultPage.heroSubtitle} onChange={(e) => update((d) => { d.adultPage.heroSubtitle = e.target.value; })} className={inputClass} />
+          </Field>
+        </div>
+        <TextField label="需求分流區塊標題" value={adultPage.needsIntro} onChange={(v) => update((d) => { d.adultPage.needsIntro = v; })} />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-800">需求分流卡片</span>
+            <AddButton onClick={() => update((d) => { d.adultPage.needs.push({ id: '', title: '', question: '', body: '' }); })}>
+              新增一張卡片
+            </AddButton>
+          </div>
+          {adultPage.needs.map((need, idx) => (
+            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">卡片 #{idx + 1}</span>
+                <RemoveButton onClick={() => update((d) => { d.adultPage.needs.splice(idx, 1); })} />
+              </div>
+              <TextField
+                label="錨點 ID"
+                hint="英文小寫、不要有空格；用於選單直接連到這張卡片，例：invest"
+                value={need.id}
+                onChange={(v) => update((d) => { d.adultPage.needs[idx].id = v; })}
+              />
+              <TextField label="標題" value={need.title} onChange={(v) => update((d) => { d.adultPage.needs[idx].title = v; })} />
+              <TextField label="問題句（斜體引言）" value={need.question} onChange={(v) => update((d) => { d.adultPage.needs[idx].question = v; })} />
+              <Field label="說明">
+                <textarea rows={2} value={need.body} onChange={(e) => update((d) => { d.adultPage.needs[idx].body = e.target.value; })} className={inputClass} />
+              </Field>
+            </div>
+          ))}
+        </div>
+        <TextField label="文章區塊標題" value={adultPage.articlesTitle} onChange={(v) => update((d) => { d.adultPage.articlesTitle = v; })} />
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-          <span className="text-sm font-bold text-slate-800">線上訂閱頁</span>
-          <TextField label="頁面標題" value={onlinePage.title} onChange={(v) => update((d) => { d.onlinePage.title = v; })} />
-          <TextField label="橘色區塊小標" value={onlinePage.valueEyebrow} onChange={(v) => update((d) => { d.onlinePage.valueEyebrow = v; })} />
-          <TextField label="橘色區塊大標題" value={onlinePage.valueTitle} onChange={(v) => update((d) => { d.onlinePage.valueTitle = v; })} />
+          <span className="text-sm font-bold text-slate-800">課程籌備區塊</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="課程名稱" value={adultPage.courseName} onChange={(v) => update((d) => { d.adultPage.courseName = v; })} />
+            <TextField label="狀態標籤" hint="例：課程籌備中" value={adultPage.courseStatus} onChange={(v) => update((d) => { d.adultPage.courseStatus = v; })} />
+          </div>
+          <TextField label="副標題" value={adultPage.courseSubtitle} onChange={(v) => update((d) => { d.adultPage.courseSubtitle = v; })} />
+          <Field label="內容方向說明">
+            <textarea rows={2} value={adultPage.courseBody} onChange={(e) => update((d) => { d.adultPage.courseBody = e.target.value; })} className={inputClass} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="學員回饋區塊標題" value={adultPage.storiesTitle} onChange={(v) => update((d) => { d.adultPage.storiesTitle = v; })} />
+          <TextField label="學員回饋區塊說明（選填）" value={adultPage.storiesSubtitle} onChange={(v) => update((d) => { d.adultPage.storiesSubtitle = v; })} />
+        </div>
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">結尾區塊（導向小管家兒童理財）</span>
+          <Field label="標題">
+            <textarea rows={2} value={adultPage.endingTitle} onChange={(e) => update((d) => { d.adultPage.endingTitle = e.target.value; })} className={inputClass} />
+          </Field>
+          <TextField label="按鈕文字" value={adultPage.endingCtaText} onChange={(v) => update((d) => { d.adultPage.endingCtaText = v; })} />
+        </div>
+      </Card>
+
+      <Card title="企業永續合作" description="企業頁的標題、三項固定服務、為什麼是星育、學習成果與 ESG／員工福祉文字（洽詢表單資料在「企業洽詢」分頁查看）">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="主標題">
+            <textarea rows={2} value={enterprisePage.heroTitle} onChange={(e) => update((d) => { d.enterprisePage.heroTitle = e.target.value; })} className={inputClass} />
+          </Field>
+          <Field label="副標題">
+            <textarea rows={3} value={enterprisePage.heroSubtitle} onChange={(e) => update((d) => { d.enterprisePage.heroSubtitle = e.target.value; })} className={inputClass} />
+          </Field>
+        </div>
+        <TextField label="頂部按鈕文字" value={enterprisePage.heroCtaText} onChange={(v) => update((d) => { d.enterprisePage.heroCtaText = v; })} />
+
+        <div className="space-y-3">
+          <span className="text-sm font-bold text-slate-800">三項合作方式（固定三項，也是洽詢表單的合作方式選項——文字改了選項就會跟著改）</span>
+          {enterprisePage.services.map((service, idx) => (
+            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+              <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">服務 #{idx + 1}</span>
+              <TextField label="標題" value={service.title} onChange={(v) => update((d) => { d.enterprisePage.services[idx].title = v; })} />
+              <Field label="說明">
+                <textarea rows={3} value={service.description} onChange={(e) => update((d) => { d.enterprisePage.services[idx].description = e.target.value; })} className={inputClass} />
+              </Field>
+            </div>
+          ))}
+        </div>
+
+        <TextField label="「為什麼是星育」標題" value={enterprisePage.whyUsTitle} onChange={(v) => update((d) => { d.enterprisePage.whyUsTitle = v; })} />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-800">「為什麼是星育」項目</span>
+            <AddButton onClick={() => update((d) => { d.enterprisePage.whyUs.push({ title: '', description: '' }); })}>新增一項</AddButton>
+          </div>
+          {enterprisePage.whyUs.map((item, idx) => (
+            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">#{idx + 1}</span>
+                <RemoveButton onClick={() => update((d) => { d.enterprisePage.whyUs.splice(idx, 1); })} />
+              </div>
+              <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.enterprisePage.whyUs[idx].title = v; })} />
+              <Field label="說明">
+                <textarea rows={2} value={item.description} onChange={(e) => update((d) => { d.enterprisePage.whyUs[idx].description = e.target.value; })} className={inputClass} />
+              </Field>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">學習成果區塊</span>
+          <TextField label="標題" value={enterprisePage.outcomesTitle} onChange={(v) => update((d) => { d.enterprisePage.outcomesTitle = v; })} />
+          <TextField label="說明" value={enterprisePage.outcomesBody} onChange={(v) => update((d) => { d.enterprisePage.outcomesBody = v; })} />
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-700">優點列表</span>
-              <AddButton onClick={() => update((d) => { d.onlinePage.points.push(''); })}>新增一項</AddButton>
+              <span className="text-xs font-bold text-slate-700">成果項目標籤</span>
+              <AddButton onClick={() => update((d) => { d.enterprisePage.outcomesList.push(''); })}>新增一項</AddButton>
             </div>
-            {onlinePage.points.map((point, idx) => (
+            {enterprisePage.outcomesList.map((item, idx) => (
               <div key={idx} className="flex items-center gap-2">
                 <input
                   type="text"
-                  value={point}
-                  onChange={(e) => update((d) => { d.onlinePage.points[idx] = e.target.value; })}
+                  value={item}
+                  onChange={(e) => update((d) => { d.enterprisePage.outcomesList[idx] = e.target.value; })}
                   className={inputClass}
                 />
-                <RemoveButton onClick={() => update((d) => { d.onlinePage.points.splice(idx, 1); })} />
+                <RemoveButton onClick={() => update((d) => { d.enterprisePage.outcomesList.splice(idx, 1); })} />
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <span className="text-sm font-bold text-slate-800">ESG／員工福祉區塊</span>
+          <TextField label="標題" value={enterprisePage.esgTitle} onChange={(v) => update((d) => { d.enterprisePage.esgTitle = v; })} />
+          <Field label="說明">
+            <textarea rows={3} value={enterprisePage.esgBody} onChange={(e) => update((d) => { d.enterprisePage.esgBody = e.target.value; })} className={inputClass} />
+          </Field>
+          <TextField label="表單區塊標題（同時也是按鈕文字所在的洽談段落標題）" value={enterprisePage.esgCtaText} onChange={(v) => update((d) => { d.enterprisePage.esgCtaText = v; })} />
         </div>
       </Card>
 
@@ -429,14 +609,13 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         </div>
       </Card>
 
-      <Card title="家長口碑" description="首頁最下方的口碑區塊；一則都沒有的時候，這個區塊不會顯示">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField label="區塊標題" value={testimonials.title} onChange={(v) => update((d) => { d.testimonials.title = v; })} />
-          <TextField label="區塊說明" value={testimonials.subtitle} onChange={(v) => update((d) => { d.testimonials.subtitle = v; })} />
-        </div>
+      <Card
+        title="學員與活動成果"
+        description="首頁、小管家兒童理財、大人的理財三個頁面都會用到的口碑／活動紀錄；每一則都要選「顯示在哪一頁」，一則都沒有的頁面就不會顯示這個區塊（各頁面自己的標題文字在上面各自的卡片設定）"
+      >
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-sm font-bold text-slate-800">口碑內容（最多 20 則）</span>
+            <span className="text-sm font-bold text-slate-800">內容（最多 20 則）</span>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -447,8 +626,12 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
                 {bulkUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                 {bulkUploading ? '上傳中，請稍候...' : '一次上傳多張截圖'}
               </button>
-              <AddButton onClick={() => update((d) => { d.testimonials.items.push({ imageUrl: '', name: '', quote: '' }); })}>
-                新增一則口碑
+              <AddButton
+                onClick={() => update((d) => {
+                  d.testimonials.items.push({ imageUrl: '', name: '', quote: '', activityName: '', date: '', segment: 'kids' });
+                })}
+              >
+                新增一則
               </AddButton>
             </div>
             <input
@@ -463,7 +646,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           {testimonials.items.map((item, idx) => (
             <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">口碑 #{idx + 1}</span>
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">#{idx + 1}</span>
                 <RemoveButton onClick={() => update((d) => { d.testimonials.items.splice(idx, 1); })} />
               </div>
               <div className="flex flex-col sm:flex-row gap-4 items-start">
@@ -475,17 +658,42 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
                   />
                 )}
                 <div className="flex-1 w-full space-y-3">
-                  <Field label="留言截圖" hint="可以只放截圖，也可以只寫文字">
+                  <Field label="顯示在哪一頁">
+                    <select
+                      value={item.segment || 'kids'}
+                      onChange={(e) => update((d) => { d.testimonials.items[idx].segment = e.target.value as typeof item.segment; })}
+                      className={inputClass}
+                    >
+                      {SEGMENT_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="留言截圖／活動照片" hint="可以只放照片，也可以只寫文字">
                     <ImageUploadField
                       value={item.imageUrl}
                       onChange={(url) => update((d) => { d.testimonials.items[idx].imageUrl = url; })}
-                      placeholder="按右邊「上傳圖片」上傳截圖"
+                      placeholder="按右邊「上傳圖片」上傳"
                       onError={(msg) => onToast(msg, 'error')}
                       onUnauthorized={onUnauthorized}
                     />
                   </Field>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <TextField
+                      label="活動名稱（選填）"
+                      placeholder="例：暑期理財營第 3 梯"
+                      value={item.activityName}
+                      onChange={(v) => update((d) => { d.testimonials.items[idx].activityName = v; })}
+                    />
+                    <TextField
+                      label="日期（選填）"
+                      placeholder="例：2026/07"
+                      value={item.date}
+                      onChange={(v) => update((d) => { d.testimonials.items[idx].date = v; })}
+                    />
+                  </div>
                   <TextField
-                    label="家長稱呼（選填）"
+                    label="稱呼（選填）"
                     placeholder="例：林媽媽"
                     value={item.name}
                     onChange={(v) => update((d) => { d.testimonials.items[idx].name = v; })}

@@ -97,7 +97,7 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
 
     if (route.type === "sitemap") {
       const articles = await db.listArticles(true).catch(() => [] as db.Article[]);
-      const pages = ["/", "/physical-courses", "/online-courses", "/articles"];
+      const pages = ["/", "/adult-finance", "/kids-finance", "/enterprise", "/physical-courses", "/online-courses", "/articles"];
       // Legal pages only once there's real content — matches the footer, which
       // hides these links until the admin fills them in.
       const legalPages = (["terms", "privacy", "faq"] as const).filter((key) => content.pages[key].body);
@@ -124,9 +124,12 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
         "",
         "## 主要頁面",
         `- [首頁](${SITE}/)`,
+        `- [大人的理財](${SITE}/adult-finance)`,
+        `- [小管家兒童理財](${SITE}/kids-finance)`,
+        `- [企業永續合作](${SITE}/enterprise)`,
         `- [實體營隊 / 課程](${SITE}/physical-courses)`,
         `- [線上課程](${SITE}/online-courses)`,
-        `- [文章](${SITE}/articles)`,
+        `- [理財文章](${SITE}/articles)`,
         "",
         "## 文章",
         ...(articles.length

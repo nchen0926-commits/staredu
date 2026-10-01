@@ -263,6 +263,7 @@ export interface Article {
   author: string;
   coverImage: string;
   body: string;
+  category: string;
   published: boolean;
   publishedAt: string;
   updatedAt: string;
@@ -280,6 +281,7 @@ type ArticleRow = {
   author?: string | null;
   cover_image: string;
   body: string;
+  category?: string | null;
   published: boolean;
   published_at: string;
   updated_at?: string | null;
@@ -296,6 +298,7 @@ function rowToArticle(row: ArticleRow): Article {
     author: row.author ?? "",
     coverImage: row.cover_image,
     body: row.body,
+    category: row.category ?? "",
     published: row.published,
     publishedAt: row.published_at,
     updatedAt: row.updated_at ?? row.published_at,
@@ -315,16 +318,17 @@ function articlesError(message: string): Error {
   if (/could not find the table|does not exist|permission denied/i.test(message) && !/column|function/i.test(message)) {
     return new Error("尚未在 Supabase 建立「文章」資料表，請先執行 supabase/articles.sql");
   }
-  if (/slug|seo_description|author|view_count|increment_article_views/i.test(message)) {
+  if (/slug|seo_description|author|view_count|increment_article_views|category/i.test(message)) {
     return new Error("尚未在 Supabase 升級「文章」資料表，請先執行 supabase/articles_v2.sql");
   }
   return new Error(message);
 }
 
-export async function listArticles(onlyLive: boolean): Promise<Article[]> {
+export async function listArticles(onlyLive: boolean, category?: string): Promise<Article[]> {
   const client = getClient();
   let query = client.from("articles").select("*").order("published_at", { ascending: false });
   if (onlyLive) query = query.eq("published", true).lte("published_at", new Date().toISOString());
+  if (category) query = query.eq("category", category);
   const { data, error } = await query;
   if (error) throw articlesError(error.message);
   return (data as ArticleRow[]).map(rowToArticle);
@@ -361,6 +365,7 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
       author: input.author,
       cover_image: input.coverImage,
       body: input.body,
+      category: input.category,
       published: input.published,
       published_at: input.publishedAt,
     })
@@ -382,6 +387,7 @@ export async function updateArticle(id: string, input: ArticleInput): Promise<Ar
       author: input.author,
       cover_image: input.coverImage,
       body: input.body,
+      category: input.category,
       published: input.published,
       published_at: input.publishedAt,
       updated_at: new Date().toISOString(),
@@ -453,5 +459,95 @@ export async function deleteLead(id: string): Promise<boolean> {
   const client = getClient();
   const { data, error } = await client.from("leads").delete().eq("id", id).select("id").maybeSingle();
   if (error) throw leadsError(error.message);
+  return Boolean(data);
+}
+
+export interface EnterpriseInquiry {
+  id: string;
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  participants: string;
+  cooperationTypes: string[];
+  topicNeeds: string;
+  preferredTiming: string;
+  otherNotes: string;
+  createdAt: string;
+}
+
+type EnterpriseInquiryRow = {
+  id: string;
+  company_name: string;
+  contact_name: string;
+  email: string;
+  phone: string;
+  participants: string;
+  cooperation_types: string[];
+  topic_needs: string;
+  preferred_timing: string;
+  other_notes: string;
+  created_at: string;
+};
+
+function rowToEnterpriseInquiry(row: EnterpriseInquiryRow): EnterpriseInquiry {
+  return {
+    id: row.id,
+    companyName: row.company_name,
+    contactName: row.contact_name,
+    email: row.email,
+    phone: row.phone,
+    participants: row.participants,
+    cooperationTypes: Array.isArray(row.cooperation_types) ? row.cooperation_types : [],
+    topicNeeds: row.topic_needs,
+    preferredTiming: row.preferred_timing,
+    otherNotes: row.other_notes,
+    createdAt: row.created_at,
+  };
+}
+
+function enterpriseError(message: string): Error {
+  if (/could not find the table|does not exist|permission denied/i.test(message)) {
+    return new Error("尚未在 Supabase 建立「企業洽詢」資料表，請先執行 supabase/enterprise_inquiries.sql");
+  }
+  return new Error(message);
+}
+
+export type EnterpriseInquiryInput = Omit<EnterpriseInquiry, "id" | "createdAt">;
+
+export async function createEnterpriseInquiry(input: EnterpriseInquiryInput): Promise<EnterpriseInquiry> {
+  const client = getClient();
+  const id = `biz-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const { data, error } = await client
+    .from("enterprise_inquiries")
+    .insert({
+      id,
+      company_name: input.companyName,
+      contact_name: input.contactName,
+      email: input.email,
+      phone: input.phone,
+      participants: input.participants,
+      cooperation_types: input.cooperationTypes,
+      topic_needs: input.topicNeeds,
+      preferred_timing: input.preferredTiming,
+      other_notes: input.otherNotes,
+    })
+    .select("*")
+    .single();
+  if (error) throw enterpriseError(error.message);
+  return rowToEnterpriseInquiry(data as EnterpriseInquiryRow);
+}
+
+export async function listEnterpriseInquiries(): Promise<EnterpriseInquiry[]> {
+  const client = getClient();
+  const { data, error } = await client.from("enterprise_inquiries").select("*").order("created_at", { ascending: false });
+  if (error) throw enterpriseError(error.message);
+  return (data as EnterpriseInquiryRow[]).map(rowToEnterpriseInquiry);
+}
+
+export async function deleteEnterpriseInquiry(id: string): Promise<boolean> {
+  const client = getClient();
+  const { data, error } = await client.from("enterprise_inquiries").delete().eq("id", id).select("id").maybeSingle();
+  if (error) throw enterpriseError(error.message);
   return Boolean(data);
 }
