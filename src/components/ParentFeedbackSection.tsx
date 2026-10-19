@@ -27,10 +27,6 @@ export default function ParentFeedbackSection({ title, subtitle, screenshotsTitl
 
   const headingColor = readableTextColor(bgColor);
 
-  // 稱呼裡有「爸」用男生頭像、有「媽」用女生頭像（頭像款式 0/2/4 是女生、1/3/5 是男生），其他依序輪流。
-  const faceFor = (name: string, idx: number) =>
-    /爸/.test(name) ? 1 + 2 * (idx % 3) : /媽/.test(name) ? 2 * (idx % 3) : idx;
-
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
       <div className="text-center space-y-2" style={{ color: headingColor }}>
@@ -55,7 +51,7 @@ export default function ParentFeedbackSection({ title, subtitle, screenshotsTitl
                   />
                 ) : (
                   <AvatarFace
-                    index={faceFor(item.name, idx)}
+                    index={idx}
                     className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto border-4 border-amber-100 bg-white"
                   />
                 )}

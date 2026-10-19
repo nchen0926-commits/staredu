@@ -977,7 +977,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
                       onChange={(v) => update((d) => { d.testimonials.items[idx].role = v; })}
                     />
                   </div>
-                  <Field label="頭像（選填）" hint="小管家兒童理財頁會顯示成圓形頭像；沒放就會顯示一個畫好的可愛預設頭像">
+                  <Field label="頭像（選填）" hint="小管家兒童理財頁會顯示成圓形頭像；沒放就會顯示預設圖案（貓、狗、花、風景、咖啡、盆栽輪流）；建議請家長提供自己的 LINE 頭像">
                     <ImageUploadField
                       value={item.avatarUrl}
                       onChange={(url) => update((d) => { d.testimonials.items[idx].avatarUrl = url; })}
