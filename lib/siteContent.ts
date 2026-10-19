@@ -39,12 +39,36 @@ export interface LegalLink {
 /** A parent/employer review, or a class/event record — shown on Home, 小管家兒童理財 and 大人的理財. */
 export interface TestimonialItem {
   imageUrl: string;
+  /** Round profile picture shown beside the quote on 小管家兒童理財 (optional). */
+  avatarUrl: string;
   name: string;
+  /** Small line under the name, e.g. 「小二學生家長」 (optional). */
+  role: string;
   quote: string;
   activityName: string;
   date: string;
   /** Which page this shows on. '' (old entries) behaves like 'kids' — that is what this site had before. */
   segment: 'kids' | 'adult' | 'enterprise' | '';
+}
+
+/** One of the 課程特色 blocks on 小管家兒童理財 (white card with a coloured border). */
+export interface KidsHighlight {
+  /** An emoji shown on the right when no image is set. */
+  icon: string;
+  title: string;
+  /** One bullet point per line. */
+  description: string;
+  borderColor: string;
+  imageUrl: string;
+}
+
+/** One of the 三大收穫 pastel cards on 小管家兒童理財. */
+export interface KidsGain {
+  icon: string;
+  title: string;
+  description: string;
+  bgColor: string;
+  borderColor: string;
 }
 
 export interface ContentPage {
@@ -118,6 +142,16 @@ export interface SiteContent {
     storiesTitle: string;
     storiesSubtitle: string;
     ctaText: string;
+    /** Background colour of the whole 小管家兒童理財 page. */
+    bgColor: string;
+    highlightsTitle: string;
+    highlightsSubtitle: string;
+    highlights: KidsHighlight[];
+    gainsTitle: string;
+    gainsSubtitle: string;
+    gains: KidsGain[];
+    /** Heading above the LINE screenshots gathered at the bottom of the 家長回饋 block. */
+    screenshotsTitle: string;
   };
   adultPage: {
     heroTitle: string;
@@ -179,6 +213,9 @@ export interface SiteContent {
     disclaimer: string;
   };
 }
+
+/** The bright yellow used as the default 小管家兒童理財 page background. */
+export const DEFAULT_KIDS_BG = '#F7D170';
 
 export const defaultSiteContent: SiteContent = {
   brand: {
@@ -256,9 +293,68 @@ export const defaultSiteContent: SiteContent = {
     featuresTitle: '原創故事、繪本與遊戲式學習',
     featuresBody: '每堂課程結合原創理財故事、桌遊與手作任務，讓孩子在玩樂中理解金錢的價值，並產出專屬的手作帳本或創意提案。',
     coursesTitle: '現有課程',
-    storiesTitle: '學員回饋與活動紀錄',
+    storiesTitle: '家長回饋',
     storiesSubtitle: '來自家長與孩子的真實回饋',
     ctaText: '立即報名 →',
+    bgColor: DEFAULT_KIDS_BG,
+    highlightsTitle: '小管家課程特色',
+    highlightsSubtitle: '用故事、遊戲與生活任務，讓孩子玩著學理財',
+    highlights: [
+      {
+        icon: '🎉',
+        title: '有趣',
+        description: '原創角色陪孩子一起學理財\n色彩鮮明的插畫與故事情境\n孩子願意主動開口、想繼續學',
+        borderColor: '#FBE48A',
+        imageUrl: '',
+      },
+      {
+        icon: '📖',
+        title: '繪本',
+        description: '原創兒童財商繪本，把金錢概念變成故事\n從角色的選擇，看見錢從哪裡來、怎麼用\n親子共讀也能自然聊到錢',
+        borderColor: '#C4C3F7',
+        imageUrl: '',
+      },
+      {
+        icon: '🎲',
+        title: '遊戲',
+        description: '桌遊與互動遊戲，在玩的過程練習做選擇\n模擬買賣、預算與儲蓄的情境\n玩完能說出自己的想法',
+        borderColor: '#CDEFB4',
+        imageUrl: '',
+      },
+      {
+        icon: '🏠',
+        title: '生活任務',
+        description: '課後延伸的家庭小任務\n手作專屬帳本，記錄自己的收支\n把課堂學到的用在日常生活裡',
+        borderColor: '#F6BFD2',
+        imageUrl: '',
+      },
+    ],
+    gainsTitle: '孩子的三大收穫',
+    gainsSubtitle: '從小建立金錢觀，受用一生',
+    gains: [
+      {
+        icon: '💡',
+        title: '分辨想要與需要',
+        description: '從生活情境出發，學會想一想再花錢，理解金錢的價值，建立自律的金錢觀念。',
+        bgColor: '#DEDEFA',
+        borderColor: '#9B9CF4',
+      },
+      {
+        icon: '🐷',
+        title: '養成儲蓄與規劃習慣',
+        description: '透過手作帳本與生活任務，練習管理零用錢、設定目標，把存錢變成日常習慣。',
+        bgColor: '#FCEBF1',
+        borderColor: '#F7BED3',
+      },
+      {
+        icon: '💬',
+        title: '敢做選擇、說出想法',
+        description: '在遊戲與討論中練習比較、決定並承擔選擇，也更願意和家人聊聊錢的事。',
+        bgColor: '#FBF5D6',
+        borderColor: '#F7DA5F',
+      },
+    ],
+    screenshotsTitle: '更多家長在 LINE 的真實回饋',
   },
   adultPage: {
     heroTitle: '錢賺了這麼多年，\n是時候真正搞懂它了。',
@@ -373,7 +469,7 @@ const MAX_BODY = 30000;
 /** Item shape for list fields that start out empty (so there is no default item to copy). */
 const EMPTY_LIST_TEMPLATES: Record<string, unknown> = {
   legalLinks: { label: '', url: '' },
-  items: { imageUrl: '', name: '', quote: '', activityName: '', date: '', segment: '' },
+  items: { imageUrl: '', avatarUrl: '', name: '', role: '', quote: '', activityName: '', date: '', segment: '' },
 };
 
 /** Only allow links a visitor's browser can safely follow (no javascript: etc.). */
@@ -399,6 +495,26 @@ function isUrlKey(key: string): boolean {
   return key === 'url' || key.endsWith('Url');
 }
 
+function isColorKey(key: string): boolean {
+  return key.endsWith('Color');
+}
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
+/** Returns the colour if it is a #rrggbb value, otherwise the fallback. */
+export function safeColor(value: string, fallback: string): string {
+  const v = value.trim();
+  return HEX_COLOR.test(v) ? v.toLowerCase() : fallback;
+}
+
+/** Dark text on light backgrounds, white text on dark ones (so a changed page colour stays readable). */
+export function readableTextColor(bg: string): string {
+  const hex = safeColor(bg, DEFAULT_KIDS_BG).slice(1);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? '#0f172a' : '#ffffff';
+}
+
 function merge(def: unknown, input: unknown, key = ''): unknown {
   if (typeof def === 'boolean') {
     return typeof input === 'boolean' ? input : def;
@@ -406,6 +522,7 @@ function merge(def: unknown, input: unknown, key = ''): unknown {
   if (typeof def === 'string') {
     if (typeof input !== 'string') return def;
     const text = input.trim().slice(0, key === 'body' ? MAX_BODY : MAX_TEXT);
+    if (isColorKey(key)) return safeColor(text, def);
     return isUrlKey(key) ? safeUrl(text) : text;
   }
   if (Array.isArray(def)) {

@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react';
 import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
-import StoriesSection from '../components/StoriesSection';
+import ParentFeedbackSection from '../components/ParentFeedbackSection';
 import { useSiteContent } from '../hooks/useSiteContent';
-import { BookOpen, Sparkles, HeartHandshake } from 'lucide-react';
+import { formatImageUrl } from '../utils/imageUtils';
+import { readableTextColor } from '../../lib/siteContent';
+
+function bulletLines(text: string): string[] {
+  return text.split('\n').map((line) => line.trim()).filter(Boolean);
+}
 
 export default function KidsFinance() {
   const { content } = useSiteContent();
@@ -18,42 +23,97 @@ export default function KidsFinance() {
       .catch(console.error);
   }, []);
 
+  // The page colour is editable in the admin; headings that sit directly on it flip between dark and white.
+  const onBg = readableTextColor(page.bgColor);
+
   return (
-    <div className="space-y-16 pb-20">
+    <div className="space-y-16 pb-20 pt-14 min-h-screen" style={{ backgroundColor: page.bgColor }}>
       <Seo
         title="小管家兒童理財"
         description="小管家兒童理財是星育學苑旗下的兒童金融教育品牌，用原創故事、遊戲與生活任務，陪孩子建立受用一生的金錢觀念。"
       />
 
       {/* Hero */}
-      <div className="bg-linear-to-b from-amber-50 to-transparent pt-14 pb-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight">{page.heroTitle}</h1>
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">{page.heroSubtitle}</p>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4" style={{ color: onBg }}>
+        <h1 className="text-3xl sm:text-5xl font-black leading-tight">{page.heroTitle}</h1>
+        <p className="text-base sm:text-xl leading-relaxed max-w-2xl mx-auto opacity-85">{page.heroSubtitle}</p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        {/* 品牌／課程理念、為什麼孩子需要金融素養、原創故事特色 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {([
-            [Sparkles, page.philosophyTitle, page.philosophyBody],
-            [HeartHandshake, page.whyTitle, page.whyBody],
-            [BookOpen, page.featuresTitle, page.featuresBody],
-          ] as const).map(([Icon, title, body], idx) => (
-            <div key={idx} className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-100 shadow-sm space-y-3">
-              <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <Icon className="w-5 h-5" />
+      {/* 課程特色（四大塊） */}
+      {page.highlights.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="text-center space-y-2" style={{ color: onBg }}>
+            <h2 className="text-3xl sm:text-4xl font-black">{page.highlightsTitle}</h2>
+            {page.highlightsSubtitle && <p className="text-lg sm:text-xl font-bold opacity-85">{page.highlightsSubtitle}</p>}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {page.highlights.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-[2rem] p-7 sm:p-9 flex items-center justify-between gap-4 min-h-[13rem] overflow-hidden"
+                style={{ border: `10px solid ${item.borderColor}` }}
+              >
+                <div className="space-y-3 min-w-0">
+                  <h3 className="text-3xl sm:text-4xl font-black text-slate-800">{item.title}</h3>
+                  <ul className="space-y-1.5 text-slate-700 text-base sm:text-lg leading-relaxed list-disc pl-5">
+                    {bulletLines(item.description).map((line, i) => (
+                      <li key={i}>{line}</li>
+                    ))}
+                  </ul>
+                </div>
+                {item.imageUrl ? (
+                  <img
+                    src={formatImageUrl(item.imageUrl)}
+                    alt={item.title}
+                    loading="lazy"
+                    className="w-32 sm:w-44 h-auto max-h-48 object-contain shrink-0"
+                  />
+                ) : (
+                  item.icon && (
+                    <span className="text-6xl sm:text-7xl shrink-0 select-none" aria-hidden="true">
+                      {item.icon}
+                    </span>
+                  )
+                )}
               </div>
-              <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-              <p className="text-sm text-slate-600 leading-relaxed">{body}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* 現有課程 */}
+      {/* 三大收穫 */}
+      {page.gains.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid-paper rounded-[2.5rem] shadow-md px-5 sm:px-10 py-12 sm:py-16 space-y-12">
+            <div className="text-center space-y-3">
+              <h2 className="text-4xl sm:text-5xl font-black bg-linear-to-r from-amber-500 to-yellow-400 bg-clip-text text-transparent">
+                {page.gainsTitle}
+              </h2>
+              {page.gainsSubtitle && <p className="text-lg sm:text-xl font-bold text-slate-800">{page.gainsSubtitle}</p>}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {page.gains.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-[2rem] px-7 pt-9 pb-8 text-center space-y-4"
+                  style={{ backgroundColor: item.bgColor, borderBottom: `10px solid ${item.borderColor}` }}
+                >
+                  <div className="w-24 h-24 rounded-full bg-white mx-auto flex items-center justify-center text-5xl select-none" aria-hidden="true">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-800">{item.title}</h3>
+                  <p className="text-base text-slate-700 leading-relaxed text-left">{item.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 現有課程 */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="courses" className="scroll-mt-24 space-y-8">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{page.coursesTitle}</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-center" style={{ color: onBg }}>{page.coursesTitle}</h2>
           {courses.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courses.map((course) => (
@@ -68,14 +128,19 @@ export default function KidsFinance() {
         </div>
       </div>
 
-      {/* 學員回饋／活動紀錄 */}
-      <StoriesSection segment="kids" title={page.storiesTitle} subtitle={page.storiesSubtitle} />
+      {/* 家長回饋：頭像在左、文字在右；LINE 截圖集中放下方 */}
+      <ParentFeedbackSection
+        title={page.storiesTitle}
+        subtitle={page.storiesSubtitle}
+        screenshotsTitle={page.screenshotsTitle}
+        bgColor={page.bgColor}
+      />
 
       {/* 報名 CTA：捲回上方課程清單，各課程自己的「立即報名」按鈕在那裡 */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <a
           href="#courses"
-          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 transition-all active:scale-95"
+          className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
         >
           {page.ctaText}
         </a>

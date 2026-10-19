@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Plus, Trash2, Save, Upload, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
-import { resolveSiteContent, SiteContent } from '../../lib/siteContent';
+import { DEFAULT_KIDS_BG, resolveSiteContent, safeColor, SiteContent } from '../../lib/siteContent';
 import { setSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import ImageUploadField from './ImageUploadField';
@@ -83,6 +83,73 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+/** Colour swatch (opens the browser's colour picker) plus a hex box for pasting an exact colour. */
+function ColorField(props: { label: string; hint?: string; value: string; fallback: string; onChange: (value: string) => void }) {
+  const [draft, setDraft] = useState(props.value);
+  useEffect(() => setDraft(props.value), [props.value]);
+  const valid = HEX_RE.test(draft.trim());
+  return (
+    <Field label={props.label} hint={props.hint}>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={safeColor(props.value, props.fallback)}
+          onChange={(e) => props.onChange(e.target.value)}
+          className="h-10 w-14 rounded-lg border border-slate-200 bg-white p-1 cursor-pointer shrink-0"
+          aria-label={props.label}
+        />
+        <input
+          type="text"
+          value={draft}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            if (HEX_RE.test(e.target.value.trim())) props.onChange(e.target.value.trim().toLowerCase());
+          }}
+          placeholder="#F7D170"
+          className={`${inputClass} max-w-[9rem] font-mono ${valid ? '' : 'border-red-300'}`}
+        />
+        {!valid && <span className="text-xs text-red-500">色碼要像 #F7D170 這樣 6 碼</span>}
+      </div>
+    </Field>
+  );
+}
+
+function OrderButtons(props: { index: number; count: number; onMove: (to: number) => void }) {
+  return (
+    <div className="flex items-center">
+      <button
+        type="button"
+        disabled={props.index === 0}
+        onClick={() => props.onMove(props.index - 1)}
+        className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:pointer-events-none"
+        title="往前移"
+      >
+        <ChevronUp className="w-4 h-4" />
+      </button>
+      <button
+        type="button"
+        disabled={props.index === props.count - 1}
+        onClick={() => props.onMove(props.index + 1)}
+        className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:pointer-events-none"
+        title="往後移"
+      >
+        <ChevronDown className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+const PAGE_BG_PRESETS: Array<{ label: string; value: string }> = [
+  { label: '鮮黃（預設）', value: DEFAULT_KIDS_BG },
+  { label: '蜜橘', value: '#FFB866' },
+  { label: '天藍', value: '#8EC9F5' },
+  { label: '粉嫩', value: '#F9B8CF' },
+  { label: '薄荷', value: '#A8E2C0' },
+  { label: '白色', value: '#FFFFFF' },
+];
+
 export default function SiteContentEditor({ onToast, onUnauthorized }: SiteContentEditorProps) {
   const [data, setData] = useState<SiteContent | null>(null);
   const [saving, setSaving] = useState(false);
@@ -128,7 +195,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
     try {
       for (const file of files) {
         const url = await uploadImage(file);
-        update((d) => { d.testimonials.items.push({ imageUrl: url, name: '', quote: '', activityName: '', date: '', segment: 'kids' }); });
+        update((d) => { d.testimonials.items.push({ imageUrl: url, avatarUrl: '', name: '', role: '', quote: '', activityName: '', date: '', segment: 'kids' }); });
         added += 1;
       }
       onToast(`已加入 ${added} 張截圖，記得按最下方的「儲存網站內容」`);
@@ -378,28 +445,154 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         </div>
       </Card>
 
-      <Card title="小管家兒童理財" description="兒童理財頁的標題與內文（課程資料在「實體課程」「線上課程」分頁管理）">
+      <Card title="小管家兒童理財" description="兒童理財頁由上到下：標題 → 課程特色 → 三大收穫 → 現有課程 → 家長回饋 → 報名按鈕（課程資料在「實體課程」「線上課程」分頁管理）">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <TextField label="主標題" value={kidsPage.heroTitle} onChange={(v) => update((d) => { d.kidsPage.heroTitle = v; })} />
           <TextField label="副標題" value={kidsPage.heroSubtitle} onChange={(v) => update((d) => { d.kidsPage.heroSubtitle = v; })} />
         </div>
-        {([
-          ['philosophyTitle', 'philosophyBody', '品牌理念'],
-          ['whyTitle', 'whyBody', '為什麼孩子需要金融素養'],
-          ['featuresTitle', 'featuresBody', '原創故事特色'],
-        ] as const).map(([titleKey, bodyKey, label]) => (
-          <div key={titleKey} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-            <span className="text-sm font-bold text-slate-800">{label}</span>
-            <TextField label="標題" value={kidsPage[titleKey]} onChange={(v) => update((d) => { d.kidsPage[titleKey] = v; })} />
-            <Field label="內文">
-              <textarea rows={3} value={kidsPage[bodyKey]} onChange={(e) => update((d) => { d.kidsPage[bodyKey] = e.target.value; })} className={inputClass} />
-            </Field>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <div>
+            <span className="text-sm font-bold text-slate-800">整頁底色</span>
+            <p className="text-xs text-slate-400 mt-0.5">兒童理財頁的背景顏色；標題文字會依底色自動變深色或白色，換成深色也看得到字</p>
           </div>
-        ))}
+          <ColorField
+            label="底色"
+            value={kidsPage.bgColor}
+            fallback={DEFAULT_KIDS_BG}
+            onChange={(v) => update((d) => { d.kidsPage.bgColor = v; })}
+          />
+          <div className="flex flex-wrap gap-2">
+            {PAGE_BG_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => update((d) => { d.kidsPage.bgColor = preset.value; })}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:border-amber-400 transition-colors"
+              >
+                <span className="w-4 h-4 rounded-full border border-slate-300" style={{ backgroundColor: preset.value }} />
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <span className="text-sm font-bold text-slate-800">課程特色（白色卡片，預設四塊）</span>
+              <p className="text-xs text-slate-400 mt-0.5">每張卡片：圖示、標題、重點條列（一行一點）、邊框顏色；有上傳圖片就顯示圖片，沒有就顯示圖示</p>
+            </div>
+            <AddButton onClick={() => update((d) => { d.kidsPage.highlights.push({ icon: '⭐', title: '', description: '', borderColor: '#FBE48A', imageUrl: '' }); })}>
+              新增一塊
+            </AddButton>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="區塊標題" value={kidsPage.highlightsTitle} onChange={(v) => update((d) => { d.kidsPage.highlightsTitle = v; })} />
+            <TextField label="區塊副標（選填）" value={kidsPage.highlightsSubtitle} onChange={(v) => update((d) => { d.kidsPage.highlightsSubtitle = v; })} />
+          </div>
+          {kidsPage.highlights.map((item, idx) => (
+            <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">特色 #{idx + 1}</span>
+                <div className="flex items-center gap-1">
+                  <OrderButtons
+                    index={idx}
+                    count={kidsPage.highlights.length}
+                    onMove={(to) => update((d) => { const [m] = d.kidsPage.highlights.splice(idx, 1); d.kidsPage.highlights.splice(to, 0, m); })}
+                  />
+                  <RemoveButton onClick={() => update((d) => { d.kidsPage.highlights.splice(idx, 1); })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[6rem_1fr] gap-3">
+                <TextField label="圖示" hint="一個表情符號" value={item.icon} onChange={(v) => update((d) => { d.kidsPage.highlights[idx].icon = v; })} />
+                <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.kidsPage.highlights[idx].title = v; })} />
+              </div>
+              <Field label="重點條列" hint="一行一點">
+                <textarea rows={4} value={item.description} onChange={(e) => update((d) => { d.kidsPage.highlights[idx].description = e.target.value; })} className={inputClass} />
+              </Field>
+              <ColorField
+                label="邊框顏色"
+                value={item.borderColor}
+                fallback="#FBE48A"
+                onChange={(v) => update((d) => { d.kidsPage.highlights[idx].borderColor = v; })}
+              />
+              <Field label="卡片右側圖片（選填）" hint="例如角色插圖；建議透明背景 PNG">
+                <ImageUploadField
+                  value={item.imageUrl}
+                  onChange={(url) => update((d) => { d.kidsPage.highlights[idx].imageUrl = url; })}
+                  placeholder="按右邊「上傳圖片」，或貼上圖片網址"
+                  onError={(msg) => onToast(msg, 'error')}
+                  onUnauthorized={onUnauthorized}
+                />
+              </Field>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <span className="text-sm font-bold text-slate-800">三大收穫（馬卡龍色卡片，預設三塊）</span>
+              <p className="text-xs text-slate-400 mt-0.5">每張卡片：圖示、標題、說明、卡片底色、下方粗邊的顏色</p>
+            </div>
+            <AddButton onClick={() => update((d) => { d.kidsPage.gains.push({ icon: '⭐', title: '', description: '', bgColor: '#DEDEFA', borderColor: '#9B9CF4' }); })}>
+              新增一塊
+            </AddButton>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="區塊標題" value={kidsPage.gainsTitle} onChange={(v) => update((d) => { d.kidsPage.gainsTitle = v; })} />
+            <TextField label="區塊副標（選填）" value={kidsPage.gainsSubtitle} onChange={(v) => update((d) => { d.kidsPage.gainsSubtitle = v; })} />
+          </div>
+          {kidsPage.gains.map((item, idx) => (
+            <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">收穫 #{idx + 1}</span>
+                <div className="flex items-center gap-1">
+                  <OrderButtons
+                    index={idx}
+                    count={kidsPage.gains.length}
+                    onMove={(to) => update((d) => { const [m] = d.kidsPage.gains.splice(idx, 1); d.kidsPage.gains.splice(to, 0, m); })}
+                  />
+                  <RemoveButton onClick={() => update((d) => { d.kidsPage.gains.splice(idx, 1); })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[6rem_1fr] gap-3">
+                <TextField label="圖示" hint="一個表情符號" value={item.icon} onChange={(v) => update((d) => { d.kidsPage.gains[idx].icon = v; })} />
+                <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.kidsPage.gains[idx].title = v; })} />
+              </div>
+              <Field label="說明">
+                <textarea rows={3} value={item.description} onChange={(e) => update((d) => { d.kidsPage.gains[idx].description = e.target.value; })} className={inputClass} />
+              </Field>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <ColorField
+                  label="卡片底色"
+                  value={item.bgColor}
+                  fallback="#DEDEFA"
+                  onChange={(v) => update((d) => { d.kidsPage.gains[idx].bgColor = v; })}
+                />
+                <ColorField
+                  label="下方粗邊顏色"
+                  value={item.borderColor}
+                  fallback="#9B9CF4"
+                  onChange={(v) => update((d) => { d.kidsPage.gains[idx].borderColor = v; })}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
         <TextField label="課程區塊標題" value={kidsPage.coursesTitle} onChange={(v) => update((d) => { d.kidsPage.coursesTitle = v; })} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField label="學員回饋區塊標題" value={kidsPage.storiesTitle} onChange={(v) => update((d) => { d.kidsPage.storiesTitle = v; })} />
-          <TextField label="學員回饋區塊說明（選填）" value={kidsPage.storiesSubtitle} onChange={(v) => update((d) => { d.kidsPage.storiesSubtitle = v; })} />
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
+          <div>
+            <span className="text-sm font-bold text-slate-800">家長回饋區塊</span>
+            <p className="text-xs text-slate-400 mt-0.5">內容在下方「學員與活動成果」新增：有「文字留言」的顯示成「頭像在左、文字在右」，有「截圖／照片」的集中放在最下面</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="區塊標題" value={kidsPage.storiesTitle} onChange={(v) => update((d) => { d.kidsPage.storiesTitle = v; })} />
+            <TextField label="區塊說明（選填）" value={kidsPage.storiesSubtitle} onChange={(v) => update((d) => { d.kidsPage.storiesSubtitle = v; })} />
+          </div>
+          <TextField label="LINE 截圖區小標題" value={kidsPage.screenshotsTitle} onChange={(v) => update((d) => { d.kidsPage.screenshotsTitle = v; })} />
         </div>
         <TextField label="底部報名按鈕文字" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
       </Card>
@@ -611,7 +804,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
 
       <Card
         title="學員與活動成果"
-        description="首頁、小管家兒童理財、大人的理財三個頁面都會用到的口碑／活動紀錄；每一則都要選「顯示在哪一頁」，一則都沒有的頁面就不會顯示這個區塊（各頁面自己的標題文字在上面各自的卡片設定）"
+        description="首頁、小管家兒童理財、大人的理財三個頁面都會用到的口碑／活動紀錄；每一則都要選「顯示在哪一頁」，一則都沒有的頁面就不會顯示這個區塊。小管家兒童理財頁：有「文字留言」的會顯示成「頭像在左、文字在右」（頭像、稱呼、身分都可以填），有「截圖／照片」的會集中放在下方"
       >
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -628,7 +821,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
               </button>
               <AddButton
                 onClick={() => update((d) => {
-                  d.testimonials.items.push({ imageUrl: '', name: '', quote: '', activityName: '', date: '', segment: 'kids' });
+                  d.testimonials.items.push({ imageUrl: '', avatarUrl: '', name: '', role: '', quote: '', activityName: '', date: '', segment: 'kids' });
                 })}
               >
                 新增一則
@@ -692,12 +885,30 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
                       onChange={(v) => update((d) => { d.testimonials.items[idx].date = v; })}
                     />
                   </div>
-                  <TextField
-                    label="稱呼（選填）"
-                    placeholder="例：林媽媽"
-                    value={item.name}
-                    onChange={(v) => update((d) => { d.testimonials.items[idx].name = v; })}
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <TextField
+                      label="稱呼（選填）"
+                      placeholder="例：林媽媽"
+                      value={item.name}
+                      onChange={(v) => update((d) => { d.testimonials.items[idx].name = v; })}
+                    />
+                    <TextField
+                      label="身分（選填）"
+                      hint="顯示在稱呼下方"
+                      placeholder="例：小二學生家長"
+                      value={item.role}
+                      onChange={(v) => update((d) => { d.testimonials.items[idx].role = v; })}
+                    />
+                  </div>
+                  <Field label="頭像（選填）" hint="小管家兒童理財頁會顯示成圓形頭像；沒放就顯示稱呼的第一個字">
+                    <ImageUploadField
+                      value={item.avatarUrl}
+                      onChange={(url) => update((d) => { d.testimonials.items[idx].avatarUrl = url; })}
+                      placeholder="按右邊「上傳圖片」上傳"
+                      onError={(msg) => onToast(msg, 'error')}
+                      onUnauthorized={onUnauthorized}
+                    />
+                  </Field>
                   <Field label="文字留言（選填）">
                     <textarea
                       rows={2}

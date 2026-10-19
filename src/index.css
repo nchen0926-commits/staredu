@@ -32,3 +32,12 @@
 .article-html hr { border: 0; border-top: 1px solid #e2e8f0; margin: 2rem 0; }
 .article-html img.rte-selected { outline: 3px solid #f59e0b; outline-offset: 2px; }
 .article-html[data-placeholder]:empty::before { content: attr(data-placeholder); color: #94a3b8; }
+
+/* Faint graph-paper background used on the white panels of 小管家兒童理財. */
+.grid-paper {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.07) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
