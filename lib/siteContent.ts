@@ -71,6 +71,28 @@ export interface KidsGain {
   borderColor: string;
 }
 
+/** One age-group column header of the 兒童理財學習地圖. */
+export interface LearningMapStage {
+  title: string;
+  subtitle: string;
+  bgColor: string;
+}
+
+/** One cell (a series × an age group) of the 兒童理財學習地圖. */
+export interface LearningMapCell {
+  /** A few emoji shown above the text. */
+  icons: string;
+  text: string;
+}
+
+/** One series (row) of the 兒童理財學習地圖; cells line up with the stages by position. */
+export interface LearningMapRow {
+  label: string;
+  title: string;
+  bgColor: string;
+  cells: LearningMapCell[];
+}
+
 export interface ContentPage {
   title: string;
   body: string;
@@ -152,6 +174,12 @@ export interface SiteContent {
     gains: KidsGain[];
     /** Heading above the LINE screenshots gathered at the bottom of the 家長回饋 block. */
     screenshotsTitle: string;
+    learningMap: {
+      title: string;
+      subtitle: string;
+      stages: LearningMapStage[];
+      rows: LearningMapRow[];
+    };
   };
   adultPage: {
     heroTitle: string;
@@ -333,28 +361,79 @@ export const defaultSiteContent: SiteContent = {
     gainsSubtitle: '從小建立金錢觀，受用一生',
     gains: [
       {
-        icon: '💡',
-        title: '分辨想要與需要',
-        description: '從生活情境出發，學會想一想再花錢，理解金錢的價值，建立自律的金錢觀念。',
+        icon: '🌟',
+        title: '孩子行為改變',
+        description: '透過遊戲與生活任務，孩子開始分辨「想要」與「需要」，願意記錄、存錢，也會把課堂上的觀念帶回家，主動和家人聊聊錢的事。',
         bgColor: '#DEDEFA',
         borderColor: '#9B9CF4',
       },
       {
-        icon: '🐷',
-        title: '養成儲蓄與規劃習慣',
-        description: '透過手作帳本與生活任務，練習管理零用錢、設定目標，把存錢變成日常習慣。',
+        icon: '🌱',
+        title: '奠定長期思維',
+        description: '從小理解時間、耐心與積少成多的道理，學會設定目標、規劃儲蓄，為日後面對儲蓄、消費與投資，打好思考的基礎。',
         bgColor: '#FCEBF1',
         borderColor: '#F7BED3',
       },
       {
-        icon: '💬',
-        title: '敢做選擇、說出想法',
-        description: '在遊戲與討論中練習比較、決定並承擔選擇，也更願意和家人聊聊錢的事。',
+        icon: '💛',
+        title: '培養正向品格',
+        description: '在故事與遊戲中練習感恩、分享與負責任，學會取捨與等待，也懂得用金錢幫助他人，成為有自律、也有溫度的孩子。',
         bgColor: '#FBF5D6',
         borderColor: '#F7DA5F',
       },
     ],
     screenshotsTitle: '更多家長在 LINE 的真實回饋',
+    learningMap: {
+      title: '兒童理財學習地圖',
+      subtitle: 'KIDS FINANCIAL LITERACY LEARNING MAP',
+      stages: [
+        { title: '5-8 歲', subtitle: '幼兒／低年級', bgColor: '#D4673C' },
+        { title: '8-10 歲', subtitle: '中年級', bgColor: '#6E9F3F' },
+        { title: '10-12 歲', subtitle: '高年級／青少年前期', bgColor: '#3C86A6' },
+      ],
+      rows: [
+        {
+          label: '系列 1',
+          title: '錢從哪裡來',
+          bgColor: '#B8473D',
+          cells: [
+            { icons: '🪙💵👩‍🍳🧑‍🌾', text: '認識硬幣與紙幣、工作能賺錢、簡單勞動換零用錢' },
+            { icons: '🤔💰👛', text: '分辨「需要」、知道資源有限、聰明消費' },
+            { icons: '🏦💳📱', text: '認識銀行與信用、多元收入管道、創意思考賺錢' },
+          ],
+        },
+        {
+          label: '系列 2',
+          title: '理財金字塔',
+          bgColor: '#D98A2E',
+          cells: [
+            { icons: '🐷🪙✨', text: '建立存錢習慣、設定簡單目標、存下一些錢' },
+            { icons: '📦💵🎁', text: '分配零用錢（存／花／給）、設定長期儲蓄目標、幫助他人' },
+            { icons: '🔺📒🧾', text: '瞭解基礎生活開銷、建立應急資金概念、入門預算與記帳' },
+          ],
+        },
+        {
+          label: '系列 3',
+          title: '長期投資觀',
+          bgColor: '#3E8E6A',
+          cells: [
+            { icons: '🌱🪴🍎', text: '時間與耐心、培養等待的好處、積少成多' },
+            { icons: '⚪➡️⛄', text: '複利（錢滾錢）的力量、長期目標' },
+            { icons: '📈📊🚀', text: '認識基礎投資工具、風險概念、長期持有與成長' },
+          ],
+        },
+        {
+          label: '系列 4',
+          title: '價值與價格',
+          bgColor: '#A9524A',
+          cells: [
+            { icons: '🏪🏷️🛍️', text: '認得價格標籤、比較簡單商品價格' },
+            { icons: '🏅🛡️🔍', text: '判斷價值（品質、實用）、做實用性的考慮' },
+            { icons: '🎟️📢🔎', text: '理性消費不盲從、做聰明的購買決策、尋找最佳價值' },
+          ],
+        },
+      ],
+    },
   },
   adultPage: {
     heroTitle: '錢賺了這麼多年，\n是時候真正搞懂它了。',

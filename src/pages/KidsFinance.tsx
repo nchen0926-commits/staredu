@@ -110,6 +110,79 @@ export default function KidsFinance() {
         </div>
       )}
 
+      {/* 兒童理財學習地圖：4 個系列 × 3 個年齡層 */}
+      {page.learningMap.rows.length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid-paper rounded-[2.5rem] shadow-md px-4 sm:px-8 py-10 sm:py-14 space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl sm:text-5xl font-black text-slate-800">{page.learningMap.title}</h2>
+              {page.learningMap.subtitle && (
+                <p className="text-xs sm:text-sm font-bold tracking-[0.25em] text-slate-500">{page.learningMap.subtitle}</p>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              {/* 年齡層標題（桌機版才顯示在最上方；手機版寫在每個格子裡） */}
+              <div className="hidden md:grid grid-cols-[9rem_repeat(3,minmax(0,1fr))] gap-x-8">
+                <div />
+                {page.learningMap.stages.map((stage, i) => (
+                  <div key={i} className="rounded-2xl px-4 py-3 text-center text-white shadow-sm" style={{ backgroundColor: stage.bgColor }}>
+                    <p className="text-xl font-black">{stage.title}</p>
+                    {stage.subtitle && <p className="text-sm opacity-90">{stage.subtitle}</p>}
+                  </div>
+                ))}
+              </div>
+
+              {page.learningMap.rows.map((row, r) => (
+                <div key={r} className="grid grid-cols-1 md:grid-cols-[9rem_repeat(3,minmax(0,1fr))] gap-3 md:gap-x-8 items-stretch">
+                  <div
+                    className="rounded-2xl px-4 py-3 md:py-4 text-white flex md:flex-col items-center md:justify-center gap-2 md:gap-0 md:text-center shadow-sm"
+                    style={{ backgroundColor: row.bgColor }}
+                  >
+                    <p className="text-sm font-bold opacity-90">{row.label}</p>
+                    <p className="text-xl font-black leading-snug">{row.title}</p>
+                  </div>
+                  {page.learningMap.stages.map((stage, c) => {
+                    const cell = row.cells[c];
+                    if (!cell) return <div key={c} className="hidden md:block" />;
+                    return (
+                      <div
+                        key={c}
+                        className="relative bg-white rounded-2xl border-2 p-4 text-center space-y-2 shadow-sm"
+                        style={{ borderColor: row.bgColor }}
+                      >
+                        <span
+                          className="md:hidden inline-block text-xs font-bold text-white rounded-full px-2.5 py-0.5"
+                          style={{ backgroundColor: stage.bgColor }}
+                        >
+                          {stage.title}
+                          {stage.subtitle ? `｜${stage.subtitle}` : ''}
+                        </span>
+                        {cell.icons && (
+                          <p className="text-3xl sm:text-4xl leading-none select-none" aria-hidden="true">
+                            {cell.icons}
+                          </p>
+                        )}
+                        <p className="text-sm sm:text-base font-bold text-slate-700 leading-relaxed">{cell.text}</p>
+                        {c < page.learningMap.stages.length - 1 && (
+                          <span
+                            aria-hidden="true"
+                            className="hidden md:flex absolute top-1/2 -right-7 -translate-y-1/2 z-10 w-6 h-6 items-center justify-center rounded-full text-white text-sm font-black"
+                            style={{ backgroundColor: row.bgColor }}
+                          >
+                            →
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 現有課程 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="courses" className="scroll-mt-24 space-y-8">

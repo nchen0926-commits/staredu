@@ -582,6 +582,83 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           ))}
         </div>
 
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <span className="text-sm font-bold text-slate-800">兒童理財學習地圖（4 個系列 × 3 個年齡層）</span>
+              <p className="text-xs text-slate-400 mt-0.5">每一列是一個系列，三格由左到右對應上方三個年齡層；圖示填幾個表情符號即可</p>
+            </div>
+            <AddButton
+              onClick={() => update((d) => {
+                d.kidsPage.learningMap.rows.push({
+                  label: '系列',
+                  title: '',
+                  bgColor: '#B8473D',
+                  cells: d.kidsPage.learningMap.stages.map(() => ({ icons: '', text: '' })),
+                });
+              })}
+            >
+              新增一個系列
+            </AddButton>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <TextField label="地圖標題" value={kidsPage.learningMap.title} onChange={(v) => update((d) => { d.kidsPage.learningMap.title = v; })} />
+            <TextField label="英文小標（選填）" value={kidsPage.learningMap.subtitle} onChange={(v) => update((d) => { d.kidsPage.learningMap.subtitle = v; })} />
+          </div>
+
+          <div className="space-y-3">
+            <span className="text-xs font-bold text-slate-700">年齡層（最上方三個色塊）</span>
+            {kidsPage.learningMap.stages.map((stage, i) => (
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-white rounded-xl border border-slate-200">
+                <TextField label={`年齡層 #${i + 1}`} value={stage.title} onChange={(v) => update((d) => { d.kidsPage.learningMap.stages[i].title = v; })} />
+                <TextField label="說明（選填）" value={stage.subtitle} onChange={(v) => update((d) => { d.kidsPage.learningMap.stages[i].subtitle = v; })} />
+                <ColorField label="色塊顏色" value={stage.bgColor} fallback="#D4673C" onChange={(v) => update((d) => { d.kidsPage.learningMap.stages[i].bgColor = v; })} />
+              </div>
+            ))}
+          </div>
+
+          {kidsPage.learningMap.rows.map((row, r) => (
+            <div key={r} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">系列 #{r + 1}</span>
+                <div className="flex items-center gap-1">
+                  <OrderButtons
+                    index={r}
+                    count={kidsPage.learningMap.rows.length}
+                    onMove={(to) => update((d) => { const [m] = d.kidsPage.learningMap.rows.splice(r, 1); d.kidsPage.learningMap.rows.splice(to, 0, m); })}
+                  />
+                  <RemoveButton onClick={() => update((d) => { d.kidsPage.learningMap.rows.splice(r, 1); })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <TextField label="系列編號" placeholder="例：系列 1" value={row.label} onChange={(v) => update((d) => { d.kidsPage.learningMap.rows[r].label = v; })} />
+                <TextField label="系列名稱" placeholder="例：錢從哪裡來" value={row.title} onChange={(v) => update((d) => { d.kidsPage.learningMap.rows[r].title = v; })} />
+                <ColorField label="左側色塊與邊框顏色" value={row.bgColor} fallback="#B8473D" onChange={(v) => update((d) => { d.kidsPage.learningMap.rows[r].bgColor = v; })} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {kidsPage.learningMap.stages.map((stage, c) => {
+                  const cell = row.cells[c] ?? { icons: '', text: '' };
+                  const setCell = (field: 'icons' | 'text', value: string) =>
+                    update((d) => {
+                      const cells = d.kidsPage.learningMap.rows[r].cells;
+                      while (cells.length <= c) cells.push({ icons: '', text: '' });
+                      cells[c][field] = value;
+                    });
+                  return (
+                    <div key={c} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                      <span className="text-xs font-bold text-slate-600">{stage.title || `年齡層 #${c + 1}`}</span>
+                      <TextField label="圖示" hint="幾個表情符號" value={cell.icons} onChange={(v) => setCell('icons', v)} />
+                      <Field label="文字">
+                        <textarea rows={3} value={cell.text} onChange={(e) => setCell('text', e.target.value)} className={inputClass} />
+                      </Field>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
         <TextField label="課程區塊標題" value={kidsPage.coursesTitle} onChange={(v) => update((d) => { d.kidsPage.coursesTitle = v; })} />
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
           <div>
@@ -900,7 +977,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
                       onChange={(v) => update((d) => { d.testimonials.items[idx].role = v; })}
                     />
                   </div>
-                  <Field label="頭像（選填）" hint="小管家兒童理財頁會顯示成圓形頭像；沒放就顯示稱呼的第一個字">
+                  <Field label="頭像（選填）" hint="小管家兒童理財頁會顯示成圓形頭像；沒放就會顯示一個畫好的可愛預設頭像">
                     <ImageUploadField
                       value={item.avatarUrl}
                       onChange={(url) => update((d) => { d.testimonials.items[idx].avatarUrl = url; })}
