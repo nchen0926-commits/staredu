@@ -1,4 +1,4 @@
-import AvatarFace from './AvatarFace';
+import InitialAvatar from './InitialAvatar';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor, type TestimonialItem } from '../../lib/siteContent';
@@ -50,13 +50,17 @@ export default function ParentFeedbackSection({ title, subtitle, screenshotsTitl
                     className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover mx-auto border-4 border-amber-100"
                   />
                 ) : (
-                  <AvatarFace
-                    index={idx}
-                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto border-4 border-amber-100 bg-white"
+                  <InitialAvatar
+                    name={item.name}
+                    className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto border-4 border-amber-100"
                   />
                 )}
-                {item.name && <p className="text-lg font-bold text-slate-700">{item.name}</p>}
-                {item.role && <p className="text-sm text-slate-500 leading-snug">{item.role}</p>}
+                {(item.name || item.role) && (
+                  <p className="text-lg font-bold text-slate-700 leading-snug">
+                    {item.name}
+                    {item.role && <span className="block text-sm font-medium text-slate-500">（{item.role}）</span>}
+                  </p>
+                )}
               </div>
 
               <blockquote className="relative flex-1 pt-8 pb-8 sm:pl-6 sm:pr-6">
