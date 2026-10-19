@@ -409,7 +409,7 @@ export const defaultSiteContent: SiteContent = {
           cells: [
             { icons: '🐷🪙✨', text: '建立存錢習慣、設定簡單目標、存下一些錢' },
             { icons: '📦💵🎁', text: '分配零用錢（存／花／給）、設定長期儲蓄目標、幫助他人' },
-            { icons: '🔺📒🧾', text: '瞭解基礎生活開銷、建立應急資金概念、入門預算與記帳' },
+            { icons: '🏪🧮💡', text: '商業思維、小店長創業實習、成本利潤觀念、辨識需求、創造價值' },
           ],
         },
         {
