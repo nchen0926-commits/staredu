@@ -12,7 +12,17 @@ const ALLOWED_TAGS = [
   'p', 'br', 'h2', 'h3', 'h4', 'strong', 'b', 'em', 'i', 'u', 's', 'strike',
   'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'hr', 'span', 'div', 'font', 'sub', 'sup',
 ];
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'style', 'color', 'target', 'rel'];
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'style', 'color', 'target', 'rel', 'id', 'class'];
+// Layout blocks that article writers (and the AI publishing tool) may use. The look of each one lives in
+// index.css, so a visual change is made in one place. Any other class name is dropped.
+const ALLOWED_CLASSES = new Set([
+  'toc-box', 'toc-title', 'summary-box', 'cta-box', 'cta-title', 'cta-btns', 'cta-btn',
+  'cta-line', 'cta-fb', 'cta-group', 'cta-ig', 'note-red',
+]);
+// Heading ids exist only so the table of contents can jump to them; the fixed prefix stops an id from
+// colliding with page elements or browser properties.
+const ID_PATTERN = /^sec-[a-z0-9-]{1,40}$/;
+const HASH_PATTERN = /^#sec-[a-z0-9-]{1,40}$/;
 // Allowed inline-style properties, and what values each may take.
 const ALLOWED_STYLE_PROPS: Record<string, RegExp | true> = {
   'color': true,
@@ -21,6 +31,7 @@ const ALLOWED_STYLE_PROPS: Record<string, RegExp | true> = {
   'width': /^\d+(\.\d+)?(%|px)$/,
   'font-weight': /^(bold|normal|[1-9]00)$/,
   'font-style': /^(italic|normal)$/,
+  'font-size': /^\d+(\.\d+)?(px|rem|em|%)$/,
   'text-decoration-line': /^(underline|line-through|none|underline line-through|line-through underline)$/,
 };
 
@@ -48,9 +59,20 @@ function installHook() {
       else el.removeAttribute('style');
     }
 
+    if (el.hasAttribute?.('id') && !ID_PATTERN.test(el.getAttribute('id') || '')) el.removeAttribute('id');
+    if (el.hasAttribute?.('class')) {
+      const kept = (el.getAttribute('class') || '').split(/\s+/).filter((c) => ALLOWED_CLASSES.has(c));
+      if (kept.length) el.setAttribute('class', kept.join(' '));
+      else el.removeAttribute('class');
+    }
+
     if (el.tagName === 'A') {
       const href = el.getAttribute('href') || '';
-      if (!/^(https?:\/\/|mailto:|tel:)/i.test(href)) {
+      if (HASH_PATTERN.test(href)) {
+        // In-page jump (table of contents): stay in the same tab.
+        el.removeAttribute('target');
+        el.removeAttribute('rel');
+      } else if (!/^(https?:\/\/|mailto:|tel:)/i.test(href)) {
         el.removeAttribute('href');
       } else if (/^https?:/i.test(href)) {
         el.setAttribute('target', '_blank');
