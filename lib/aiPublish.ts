@@ -2,6 +2,7 @@ import crypto from "crypto";
 import express from "express";
 import { safeUrl } from "./siteContent";
 import * as db from "./db";
+import { handleMcp } from "./aiMcp";
 
 /**
  * Create-only article API for outside AI / automation tools (ChatGPT Actions, Make, Zapier…).
@@ -120,11 +121,43 @@ function parseAiArticle(body: any): Parsed {
   };
 }
 
+/** Shared by the REST endpoint and the MCP tool so both follow identical rules. */
+export async function createArticleCore(body: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
+  const parsed = parseAiArticle(body);
+  if ("error" in parsed) return { status: 400, body: { error: parsed.error } };
+  try {
+    if (await db.getArticleByKey(parsed.input.slug)) {
+      return { status: 409, body: { error: `slug「${parsed.input.slug}」已經有文章使用，請換一個網址名稱` } };
+    }
+    const article = await db.createArticle(parsed.input);
+    console.log(`AI publish: created article ${article.id} (${article.published ? "published" : "draft"})`);
+    return {
+      status: 201,
+      body: {
+        success: true,
+        id: article.id,
+        slug: article.slug,
+        status: article.published ? "published" : "draft",
+        publishedAt: article.publishedAt,
+        isLive: db.isArticleLive(article),
+        url: `/articles/${article.slug}`,
+      },
+    };
+  } catch (err: any) {
+    const message = String(err?.message || "");
+    if (/網址|slug|duplicate/i.test(message) && /已|duplicate/i.test(message)) {
+      return { status: 409, body: { error: "這個 slug 已經有文章使用，請換一個網址名稱" } };
+    }
+    console.error("AI publish create error:", message);
+    return { status: 500, body: { error: "建立文章失敗" } };
+  }
+}
+
 export function createAiPublishRouter(): express.Router {
   const router = express.Router();
 
   // 1. Method guard: only POST is ever allowed on these paths.
-  router.all(["/articles", "/images"], (req, res, next) => {
+  router.all(["/articles", "/images", "/mcp"], (req, res, next) => {
     if (req.method === "POST") return next();
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "這個網址只接受 POST" });
@@ -145,31 +178,15 @@ export function createAiPublishRouter(): express.Router {
   });
 
   router.post("/articles", async (req, res) => {
-    const parsed = parseAiArticle(req.body);
-    if ("error" in parsed) return res.status(400).json({ error: parsed.error });
-    try {
-      if (await db.getArticleByKey(parsed.input.slug)) {
-        return res.status(409).json({ error: `slug「${parsed.input.slug}」已經有文章使用，請換一個網址名稱` });
-      }
-      const article = await db.createArticle(parsed.input);
-      console.log(`AI publish: created article ${article.id} (${article.published ? "published" : "draft"})`);
-      res.status(201).json({
-        success: true,
-        id: article.id,
-        slug: article.slug,
-        status: article.published ? "published" : "draft",
-        publishedAt: article.publishedAt,
-        isLive: db.isArticleLive(article),
-        url: `/articles/${article.slug}`,
-      });
-    } catch (err: any) {
-      const message = String(err?.message || "");
-      if (/網址|slug|duplicate/i.test(message) && /已|duplicate/i.test(message)) {
-        return res.status(409).json({ error: "這個 slug 已經有文章使用，請換一個網址名稱" });
-      }
-      console.error("AI publish create error:", message);
-      res.status(500).json({ error: "建立文章失敗" });
-    }
+    const result = await createArticleCore(req.body);
+    res.status(result.status).json(result.body);
+  });
+
+  // MCP endpoint (for ChatGPT custom MCP servers etc.): same key, same rules, one create-only tool.
+  router.post("/mcp", async (req, res) => {
+    const reply = await handleMcp(req.body, createArticleCore);
+    if (reply === null) return res.status(202).end();
+    res.json(reply);
   });
 
   // Photos from the classroom etc.: JSON { contentType, dataBase64 } -> public URL.
