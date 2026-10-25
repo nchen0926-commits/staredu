@@ -5,6 +5,7 @@
  */
 
 type CreateFn = (body: unknown) => Promise<{ status: number; body: Record<string, unknown> }>;
+type UploadFn = CreateFn;
 
 const SUPPORTED = ["2025-06-18", "2025-03-26", "2024-11-05"];
 
@@ -25,7 +26,7 @@ const TOOL = {
       seoDescription: { type: "string", maxLength: 300, description: "Meta description." },
       author: { type: "string", maxLength: 60 },
       category: { type: "string", enum: ["大人理財", "兒童理財", "企業永續", "金融科技"] },
-      coverImage: { type: "string", description: "https URL of the cover image (optional)." },
+      coverImage: { type: "string", description: "https URL of the cover image (optional); get it from upload_images." },
       contentHtml: { type: "string", description: "Body HTML starting at the intro paragraph (no h1). Allowed: p, h2, h3, ul, ol, li, blockquote, strong, em, a, img, br." },
       status: { type: "string", enum: ["draft", "published"], default: "draft" },
       publishedAt: { type: "string", description: "Optional ISO 8601 time with offset, e.g. 2026-11-01T09:00:00+08:00. Future time = scheduled." },
@@ -34,10 +35,37 @@ const TOOL = {
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
 };
 
+const FILE_OBJECT = {
+  type: "object",
+  required: ["download_url", "file_id"],
+  properties: {
+    download_url: { type: "string" },
+    file_id: { type: "string" },
+    mime_type: { type: "string" },
+    file_name: { type: "string" },
+  },
+};
+
+const UPLOAD_TOOL = {
+  name: "upload_images",
+  title: "Upload photos to the website",
+  description:
+    "Uploads the photos the owner attached to this chat (up to 8 per call, PNG/JPG/WebP/GIF, max 8MB each) to the website's image storage " +
+    "and returns one public https URL per photo, in the same order. Use these URLs in create_article (coverImage or <img src=\"...\" alt=\"...\"> inside contentHtml). " +
+    "This does not publish anything by itself.",
+  inputSchema: {
+    type: "object",
+    required: ["images"],
+    properties: { images: { type: "array", items: FILE_OBJECT, minItems: 1, maxItems: 8, description: "The attached photos." } },
+  },
+  _meta: { "openai/fileParams": ["images"] },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+};
+
 const ok = (id: unknown, result: unknown) => ({ jsonrpc: "2.0", id, result });
 const fail = (id: unknown, code: number, message: string) => ({ jsonrpc: "2.0", id, error: { code, message } });
 
-async function handleOne(msg: any, create: CreateFn): Promise<unknown | null> {
+async function handleOne(msg: any, create: CreateFn, upload: UploadFn): Promise<unknown | null> {
   if (!msg || typeof msg !== "object" || typeof msg.method !== "string") return fail(msg?.id ?? null, -32600, "Invalid request");
   const { id, method } = msg;
   const isNotification = id === undefined || id === null;
@@ -55,13 +83,15 @@ async function handleOne(msg: any, create: CreateFn): Promise<unknown | null> {
     case "ping":
       return ok(id, {});
     case "tools/list":
-      return ok(id, { tools: [TOOL] });
+      return ok(id, { tools: [TOOL, UPLOAD_TOOL] });
     case "tools/call": {
-      if (msg.params?.name !== TOOL.name) return fail(id, -32602, `Unknown tool: ${String(msg.params?.name)}`);
-      const result = await create(msg.params?.arguments ?? {});
+      const name = msg.params?.name;
+      if (name !== TOOL.name && name !== UPLOAD_TOOL.name) return fail(id, -32602, `Unknown tool: ${String(name)}`);
+      const args = msg.params?.arguments ?? {};
+      const result = name === UPLOAD_TOOL.name ? await upload(args.images) : await create(args);
       return ok(id, {
         content: [{ type: "text", text: JSON.stringify(result.body) }],
-        isError: result.status >= 400,
+        isError: result.status >= 400 || result.status === 207,
       });
     }
     default:
@@ -71,10 +101,10 @@ async function handleOne(msg: any, create: CreateFn): Promise<unknown | null> {
 }
 
 /** Returns the JSON-RPC reply, or null when there is nothing to send back (notifications only). */
-export async function handleMcp(body: unknown, create: CreateFn): Promise<unknown | null> {
+export async function handleMcp(body: unknown, create: CreateFn, upload: UploadFn): Promise<unknown | null> {
   if (Array.isArray(body)) {
-    const replies = (await Promise.all(body.map((m) => handleOne(m, create)))).filter((r) => r !== null);
+    const replies = (await Promise.all(body.map((m) => handleOne(m, create, upload)))).filter((r) => r !== null);
     return replies.length ? replies : null;
   }
-  return handleOne(body, create);
+  return handleOne(body, create, upload);
 }

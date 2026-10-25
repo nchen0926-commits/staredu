@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import dns from "node:dns/promises";
+import net from "node:net";
 import express from "express";
 import { safeUrl } from "./siteContent";
 import * as db from "./db";
@@ -162,6 +164,72 @@ export async function createArticleCore(body: unknown): Promise<{ status: number
   }
 }
 
+// ---- Image intake for the MCP tool: ChatGPT hands us a short-lived download URL for each photo the owner attached. ----
+
+const MCP_MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGES_PER_CALL = 8;
+
+function isPrivateAddress(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split(".").map(Number);
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+  }
+  const v = ip.toLowerCase();
+  if (v.startsWith("::ffff:")) return isPrivateAddress(v.slice(7));
+  return v === "::1" || v === "::" || v.startsWith("fc") || v.startsWith("fd") || v.startsWith("fe8") || v.startsWith("fe9") || v.startsWith("fea") || v.startsWith("feb");
+}
+
+/** The URL comes from outside, so fetch it defensively (https only, public addresses only, no redirects, size cap). */
+async function fetchRemoteImage(rawUrl: string): Promise<Buffer> {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    throw new Error("圖片連結格式不正確");
+  }
+  if (url.protocol !== "https:" || url.username || url.password) throw new Error("圖片連結必須是 https");
+  const addresses = net.isIP(url.hostname) ? [{ address: url.hostname }] : await dns.lookup(url.hostname, { all: true });
+  if (addresses.length === 0 || addresses.some((a) => isPrivateAddress(a.address))) throw new Error("不允許的圖片來源");
+  const res = await fetch(url, { redirect: "error", signal: AbortSignal.timeout(20000) });
+  if (!res.ok) throw new Error(`下載圖片失敗（${res.status}）`);
+  const declared = Number(res.headers.get("content-length") ?? 0);
+  if (declared > MCP_MAX_IMAGE_BYTES) throw new Error("圖片太大（上限 8MB）");
+  const data = Buffer.from(await res.arrayBuffer());
+  if (data.length > MCP_MAX_IMAGE_BYTES) throw new Error("圖片太大（上限 8MB）");
+  return data;
+}
+
+/** Decide the type from the bytes themselves, never from what the sender claims. */
+function sniffImageType(b: Buffer): string | null {
+  if (b.length > 12 && b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return "image/png";
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b.length > 12 && b.subarray(0, 4).toString() === "RIFF" && b.subarray(8, 12).toString() === "WEBP") return "image/webp";
+  if (b.length > 6 && /^GIF8[79]a$/.test(b.subarray(0, 6).toString())) return "image/gif";
+  return null;
+}
+
+export async function uploadImagesCore(files: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
+  const list = Array.isArray(files) ? files : files ? [files] : [];
+  if (list.length === 0) return { status: 400, body: { error: "沒有收到圖片，請先在對話中附上照片" } };
+  if (list.length > MAX_IMAGES_PER_CALL) return { status: 400, body: { error: `一次最多 ${MAX_IMAGES_PER_CALL} 張圖片` } };
+  const results: Array<Record<string, unknown>> = [];
+  for (const [i, file] of (list as any[]).entries()) {
+    try {
+      const data = await fetchRemoteImage(String(file?.download_url ?? ""));
+      const contentType = sniffImageType(data);
+      if (!contentType) throw new Error("只支援 PNG、JPG、WebP、GIF 圖片");
+      const path = `uploads/${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${IMAGE_TYPES[contentType]}`;
+      const url = await db.uploadSiteAsset(data, contentType, path);
+      results.push({ index: i + 1, success: true, url });
+    } catch (err: any) {
+      console.error("AI publish image intake error:", String(err?.message || ""));
+      results.push({ index: i + 1, success: false, error: String(err?.message || "上傳失敗").slice(0, 120) });
+    }
+  }
+  const failed = results.some((r) => r.success === false);
+  return { status: failed ? 207 : 201, body: { images: results } };
+}
+
 export function createAiPublishRouter(): express.Router {
   const router = express.Router();
 
@@ -199,7 +267,7 @@ export function createAiPublishRouter(): express.Router {
 
   // MCP endpoint (for ChatGPT custom MCP servers etc.): same key, same rules, one create-only tool.
   router.post(["/mcp", "/mcp/:token"], async (req, res) => {
-    const reply = await handleMcp(req.body, createArticleCore);
+    const reply = await handleMcp(req.body, createArticleCore, uploadImagesCore);
     if (reply === null) return res.status(202).end();
     res.json(reply);
   });
