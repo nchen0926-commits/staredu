@@ -37,6 +37,15 @@ function configuredKeys(): string[] {
     .filter((k) => k.length >= MIN_KEY_LENGTH);
 }
 
+/**
+ * For clients that can only call a URL (no custom headers, e.g. ChatGPT custom MCP with "no authentication"):
+ * the secret rides in the path /api/ai/mcp/<token>. The token is HMAC(key, "mcp-url-v1"), so it never reveals
+ * the real key, works only for the MCP endpoint, and stops working the moment the key is changed or removed.
+ */
+export function mcpUrlToken(key: string): string {
+  return crypto.createHmac("sha256", key).update("mcp-url-v1").digest("hex");
+}
+
 function presentedKey(req: express.Request): string {
   const auth = String(req.headers.authorization ?? "");
   const bearer = /^Bearer\s+(.+)$/i.exec(auth);
@@ -157,7 +166,7 @@ export function createAiPublishRouter(): express.Router {
   const router = express.Router();
 
   // 1. Method guard: only POST is ever allowed on these paths.
-  router.all(["/articles", "/images", "/mcp"], (req, res, next) => {
+  router.all(["/articles", "/images", "/mcp", "/mcp/:token"], (req, res, next) => {
     if (req.method === "POST") return next();
     res.setHeader("Allow", "POST");
     res.status(405).json({ error: "這個網址只接受 POST" });
@@ -169,6 +178,12 @@ export function createAiPublishRouter(): express.Router {
     if (keys.length === 0) {
       // Fails closed: with no key configured the API is simply off.
       return res.status(503).json({ error: "AI 發布功能尚未啟用（伺服器未設定 API Key）" });
+    }
+    const urlToken = /^\/mcp\/([0-9a-f]{64})$/.exec(req.path)?.[1];
+    if (urlToken) {
+      if (keys.some((k) => keyIsValid(urlToken, [mcpUrlToken(k)]))) return next();
+      console.warn("AI publish: rejected request with invalid MCP URL token");
+      return res.status(401).json({ error: "連結無效" });
     }
     if (!keyIsValid(presentedKey(req), keys)) {
       console.warn("AI publish: rejected request with missing/invalid key");
@@ -183,7 +198,7 @@ export function createAiPublishRouter(): express.Router {
   });
 
   // MCP endpoint (for ChatGPT custom MCP servers etc.): same key, same rules, one create-only tool.
-  router.post("/mcp", async (req, res) => {
+  router.post(["/mcp", "/mcp/:token"], async (req, res) => {
     const reply = await handleMcp(req.body, createArticleCore);
     if (reply === null) return res.status(202).end();
     res.json(reply);
