@@ -1,0 +1,157 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "e-staredu article publishing",
+    "version": "1.0.0",
+    "description": "Create-only API. Cannot edit or delete articles."
+  },
+  "servers": [
+    {
+      "url": "https://e-staredu.com"
+    }
+  ],
+  "paths": {
+    "/api/ai/articles": {
+      "post": {
+        "operationId": "createArticle",
+        "summary": "Create an article as draft or published",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "slug",
+                  "contentHtml"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "slug": {
+                    "type": "string",
+                    "description": "URL name: lowercase English letters, digits, hyphens. Must be unique.",
+                    "example": "kids-money-tips"
+                  },
+                  "excerpt": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Short summary shown in article lists."
+                  },
+                  "seoDescription": {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "author": {
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "大人理財",
+                      "兒童理財",
+                      "企業永續",
+                      "金融科技"
+                    ]
+                  },
+                  "coverImage": {
+                    "type": "string",
+                    "description": "https URL, e.g. from uploadImage."
+                  },
+                  "contentHtml": {
+                    "type": "string",
+                    "description": "Article body as HTML (p, h2, h3, ul, ol, li, blockquote, strong, em, a, img)."
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "published"
+                    ],
+                    "default": "draft",
+                    "description": "Use published ONLY after the human owner has explicitly approved."
+                  },
+                  "publishedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Optional. A future time schedules the article."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid field"
+          },
+          "401": {
+            "description": "Bad API key"
+          },
+          "409": {
+            "description": "Slug already used"
+          }
+        }
+      }
+    },
+    "/api/ai/images": {
+      "post": {
+        "operationId": "uploadImage",
+        "summary": "Upload an image (max 4MB), returns its URL",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "contentType",
+                  "dataBase64"
+                ],
+                "properties": {
+                  "contentType": {
+                    "type": "string",
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp",
+                      "image/gif"
+                    ]
+                  },
+                  "dataBase64": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created, body has url"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

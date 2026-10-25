@@ -13,6 +13,7 @@ import {
   SESSION_COOKIE_NAME,
 } from "./adminAuth";
 import * as db from "./db";
+import { createAiPublishRouter, ARTICLE_CATEGORIES, SLUG_PATTERN } from "./aiPublish";
 
 let stripeClient: Stripe | null = null;
 const getStripe = () => {
@@ -41,6 +42,9 @@ export function createApiRouter(): express.Router {
     }
     res.status(401).json({ error: "需要管理員登入" });
   };
+
+  // Create-only article API for AI tools; authenticated by its own API key (see lib/aiPublish.ts).
+  router.use("/ai", createAiPublishRouter());
 
   // --- Admin auth ---
 
@@ -128,9 +132,7 @@ export function createApiRouter(): express.Router {
 
   // --- Articles ---
 
-  const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   const BOT_AGENT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i;
-  const ARTICLE_CATEGORIES = new Set(["大人理財", "兒童理財", "企業永續", "金融科技"]);
 
   // Returns the cleaned article, or a message describing what is wrong.
   const parseArticle = (input: any): db.ArticleInput | string => {
