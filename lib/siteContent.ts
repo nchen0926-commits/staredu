@@ -62,6 +62,19 @@ export interface KidsHighlight {
   imageUrl: string;
 }
 
+/** One step of the 報名流程 on 小管家兒童理財. */
+export interface KidsEnrollStep {
+  title: string;
+  description: string;
+}
+
+/** One card of 課程說明 (付款、發票、退費…) on 小管家兒童理財. */
+export interface KidsPolicy {
+  icon: string;
+  title: string;
+  description: string;
+}
+
 /** One of the 三大收穫 pastel cards on 小管家兒童理財. */
 export interface KidsGain {
   icon: string;
@@ -174,6 +187,28 @@ export interface SiteContent {
     gains: KidsGain[];
     /** Heading above the LINE screenshots gathered at the bottom of the 家長回饋 block. */
     screenshotsTitle: string;
+    /** 適合哪類爸媽: the lists take one point per line; 【】 around words makes them bold. */
+    audienceBadge: string;
+    audienceTitle: string;
+    audienceListTitle: string;
+    audienceList: string;
+    benefitsTitle: string;
+    benefitsList: string;
+    audienceNote: string;
+    /** 報名流程 + 官方 LINE + 課程說明. */
+    enrollBadge: string;
+    enrollTitle: string;
+    enrollSteps: KidsEnrollStep[];
+    lineBoxTitle: string;
+    lineUrl: string;
+    lineButtonText: string;
+    lineHint: string;
+    facebookPageUrl: string;
+    facebookGroupUrl: string;
+    instagramUrl: string;
+    policyBadge: string;
+    policyTitle: string;
+    policies: KidsPolicy[];
     learningMap: {
       title: string;
       subtitle: string;
@@ -383,6 +418,37 @@ export const defaultSiteContent: SiteContent = {
       },
     ],
     screenshotsTitle: '更多家長在 LINE 的真實回饋',
+    audienceBadge: '適合哪類爸媽？',
+    audienceTitle: '如果你也想投資下一代的財商',
+    audienceListTitle: '適合小管家課程的對象',
+    audienceList: '有 5–12 歲孩子的家庭\n零基礎或懂一些理財的爸媽\n想給孩子商業啟蒙的家長們\n注重孩子正向價值觀的父母',
+    benefitsTitle: '報名後，家長可以獲得',
+    benefitsList: '充實自己，【優化】自己的理財觀念；告別似懂非懂，擁有和孩子談論金錢的【底氣】\n能夠掌握日常親子理財對話及引導方向，享受【優質的互動】\n增加日常親子【財務話題上的互動】，和孩子一起觀察【商業的世界】，建立孩子的【正向價值觀與品格】',
+    audienceNote: '要準備的只有一個可以上網的設備，手機也可以。要不要陪孩子一起上，由您自由選擇。',
+    enrollBadge: '報名流程',
+    enrollTitle: '報名只要 4 個步驟',
+    enrollSteps: [
+      { title: '選擇課程', description: '在上方挑選想上的課程，按「立即報名」' },
+      { title: '完成付款', description: '可使用轉帳或信用卡' },
+      { title: '加入官方 LINE', description: '課前通知會透過官方 LINE 傳給您' },
+      { title: '準時上課', description: '依課前通知的方式準時參加' },
+    ],
+    lineBoxTitle: '報名後請加入官方 LINE，才收得到課前通知',
+    lineUrl: 'https://lin.ee/u3aI1YH',
+    lineButtonText: '加入官方 LINE',
+    lineHint: '也可以在 LINE 搜尋 ID：@309aqqdp（有任何問題，也歡迎先來 LINE 詢問）',
+    facebookPageUrl: 'https://www.facebook.com/richfromthestart',
+    facebookGroupUrl: 'https://www.facebook.com/groups/963798131355327',
+    instagramUrl: 'https://www.instagram.com/staredu_kids/',
+    policyBadge: '課程說明',
+    policyTitle: '報名前，先跟您說明幾件事',
+    policies: [
+      { icon: '💳', title: '付款方式', description: '可使用轉帳或信用卡。' },
+      { icon: '📄', title: '發票', description: '如需紙本發票，請提供地址，我們會寄給您。' },
+      { icon: '📝', title: '學習單', description: '課前會提供下載連結，可自行提前列印；不印也可以，直接參與課程就好。' },
+      { icon: '🎥', title: '請假與回放', description: '當週請假的話，可以向老師申請課後回放，保留 14 天，期間內可無限次觀看。' },
+      { icon: '🤝', title: '關於退費與改期', description: '課程報名後無法退費或改期。如果當天孩子剛好無法上課，請告知老師，我們會提供回放連結，讓孩子在家找方便的時間補上進度，一樣可以充實的學習唷！' },
+    ],
     learningMap: {
       title: '兒童理財學習地圖',
       subtitle: 'KIDS FINANCIAL LITERACY LEARNING MAP',

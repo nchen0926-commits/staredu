@@ -3,6 +3,7 @@ import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import ParentFeedbackSection from '../components/ParentFeedbackSection';
+import { AudienceSection, EnrollSection } from '../components/SignupInfoSections';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor } from '../../lib/siteContent';
@@ -183,6 +184,9 @@ export default function KidsFinance() {
         </div>
       )}
 
+      {/* 適合哪類爸媽 */}
+      <AudienceSection page={page} />
+
       {/* 現有課程 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div id="courses" className="scroll-mt-24 space-y-8">
@@ -200,6 +204,9 @@ export default function KidsFinance() {
           )}
         </div>
       </div>
+
+      {/* 報名流程、官方 LINE、課程說明 */}
+      <EnrollSection page={page} />
 
       {/* 家長回饋：頭像在左、文字在右；LINE 截圖集中放下方 */}
       <ParentFeedbackSection
