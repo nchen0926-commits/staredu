@@ -68,11 +68,11 @@ export interface KidsEnrollStep {
   description: string;
 }
 
-/** One card of 課程說明 (付款、發票、退費…) on 小管家兒童理財. */
-export interface KidsPolicy {
-  icon: string;
+/** A button under 報名流程 that leads to one product page. */
+export interface KidsProductLink {
   title: string;
   description: string;
+  url: string;
 }
 
 /** One of the 三大收穫 pastel cards on 小管家兒童理財. */
@@ -195,20 +195,11 @@ export interface SiteContent {
     benefitsTitle: string;
     benefitsList: string;
     audienceNote: string;
-    /** 報名流程 + 官方 LINE + 課程說明. */
+    /** 報名流程 + 各產品頁入口. */
     enrollBadge: string;
     enrollTitle: string;
     enrollSteps: KidsEnrollStep[];
-    lineBoxTitle: string;
-    lineUrl: string;
-    lineButtonText: string;
-    lineHint: string;
-    facebookPageUrl: string;
-    facebookGroupUrl: string;
-    instagramUrl: string;
-    policyBadge: string;
-    policyTitle: string;
-    policies: KidsPolicy[];
+    productLinks: KidsProductLink[];
     learningMap: {
       title: string;
       subtitle: string;
@@ -428,26 +419,15 @@ export const defaultSiteContent: SiteContent = {
     enrollBadge: '報名流程',
     enrollTitle: '報名只要 4 個步驟',
     enrollSteps: [
-      { title: '選擇課程', description: '在上方挑選想上的課程，按「立即報名」' },
-      { title: '完成付款', description: '可使用轉帳或信用卡' },
-      { title: '加入官方 LINE', description: '課前通知會透過官方 LINE 傳給您' },
-      { title: '準時上課', description: '依課前通知的方式準時參加' },
+      { title: '選擇課程', description: '看看上面的課程，挑一個適合孩子的' },
+      { title: '進入課程頁', description: '了解上課時間與內容，按「立即報名」' },
+      { title: '完成付款', description: '依頁面說明完成報名' },
+      { title: '準時上課', description: '課前會收到通知，準時參加就好' },
     ],
-    lineBoxTitle: '報名後請加入官方 LINE，才收得到課前通知',
-    lineUrl: 'https://lin.ee/u3aI1YH',
-    lineButtonText: '加入官方 LINE',
-    lineHint: '也可以在 LINE 搜尋 ID：@309aqqdp（有任何問題，也歡迎先來 LINE 詢問）',
-    facebookPageUrl: 'https://www.facebook.com/richfromthestart',
-    facebookGroupUrl: 'https://www.facebook.com/groups/963798131355327',
-    instagramUrl: 'https://www.instagram.com/staredu_kids/',
-    policyBadge: '課程說明',
-    policyTitle: '報名前，先跟您說明幾件事',
-    policies: [
-      { icon: '💳', title: '付款方式', description: '可使用轉帳或信用卡。' },
-      { icon: '📄', title: '發票', description: '如需紙本發票，請提供地址，我們會寄給您。' },
-      { icon: '📝', title: '學習單', description: '課前會提供下載連結，可自行提前列印；不印也可以，直接參與課程就好。' },
-      { icon: '🎥', title: '請假與回放', description: '當週請假的話，可以向老師申請課後回放，保留 14 天，期間內可無限次觀看。' },
-      { icon: '🤝', title: '關於退費與改期', description: '課程報名後無法退費或改期。如果當天孩子剛好無法上課，請告知老師，我們會提供回放連結，讓孩子在家找方便的時間補上進度，一樣可以充實的學習唷！' },
+    productLinks: [
+      { title: '線上直播課', description: '在家上，每週六一起上', url: 'https://live.e-staredu.com' },
+      { title: '英文繪本小小理財家', description: '用英文繪本，學理財', url: 'https://english.e-staredu.com' },
+      { title: '小店長創業課', description: '孩子當小店長，真的做生意', url: 'https://store.e-staredu.com' },
     ],
     learningMap: {
       title: '兒童理財學習地圖',

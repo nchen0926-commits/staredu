@@ -693,8 +693,8 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
 
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
           <div>
-            <span className="text-sm font-bold text-slate-800">報名流程與官方 LINE</span>
-            <p className="text-xs text-slate-400 mt-0.5">放在課程清單下方。網址留空的按鈕不會顯示</p>
+            <span className="text-sm font-bold text-slate-800">報名流程</span>
+            <p className="text-xs text-slate-400 mt-0.5">放在課程清單下方，下面的按鈕帶訪客到各產品頁；網址留空的按鈕不會顯示</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField label="小標籤" value={kidsPage.enrollBadge} onChange={(v) => update((d) => { d.kidsPage.enrollBadge = v; })} />
@@ -723,52 +723,34 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
               </div>
             ))}
           </div>
-          <TextField label="LINE 框標題" value={kidsPage.lineBoxTitle} onChange={(v) => update((d) => { d.kidsPage.lineBoxTitle = v; })} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField label="官方 LINE 網址" value={kidsPage.lineUrl} onChange={(v) => update((d) => { d.kidsPage.lineUrl = v; })} />
-            <TextField label="LINE 按鈕文字" value={kidsPage.lineButtonText} onChange={(v) => update((d) => { d.kidsPage.lineButtonText = v; })} />
-            <TextField label="FB 粉專網址" value={kidsPage.facebookPageUrl} onChange={(v) => update((d) => { d.kidsPage.facebookPageUrl = v; })} />
-            <TextField label="FB 社團網址" value={kidsPage.facebookGroupUrl} onChange={(v) => update((d) => { d.kidsPage.facebookGroupUrl = v; })} />
-            <TextField label="IG 網址" value={kidsPage.instagramUrl} onChange={(v) => update((d) => { d.kidsPage.instagramUrl = v; })} />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">各產品頁按鈕</span>
+              <AddButton onClick={() => update((d) => { d.kidsPage.productLinks.push({ title: '', description: '', url: '' }); })}>新增按鈕</AddButton>
+            </div>
+            {kidsPage.productLinks.map((item, idx) => (
+              <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">按鈕 #{idx + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <OrderButtons
+                      index={idx}
+                      count={kidsPage.productLinks.length}
+                      onMove={(to) => update((d) => { const [m] = d.kidsPage.productLinks.splice(idx, 1); d.kidsPage.productLinks.splice(to, 0, m); })}
+                    />
+                    <RemoveButton onClick={() => update((d) => { d.kidsPage.productLinks.splice(idx, 1); })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <TextField label="課程名稱" value={item.title} onChange={(v) => update((d) => { d.kidsPage.productLinks[idx].title = v; })} />
+                  <TextField label="一句說明" value={item.description} onChange={(v) => update((d) => { d.kidsPage.productLinks[idx].description = v; })} />
+                </div>
+                <TextField label="產品頁網址" value={item.url} onChange={(v) => update((d) => { d.kidsPage.productLinks[idx].url = v; })} />
+              </div>
+            ))}
           </div>
-          <TextField label="LINE 下方小字" value={kidsPage.lineHint} onChange={(v) => update((d) => { d.kidsPage.lineHint = v; })} />
         </div>
 
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-          <div>
-            <span className="text-sm font-bold text-slate-800">課程說明（付款、發票、退費…）</span>
-            <p className="text-xs text-slate-400 mt-0.5">放在報名流程下方，一張卡片一個主題</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField label="小標籤" value={kidsPage.policyBadge} onChange={(v) => update((d) => { d.kidsPage.policyBadge = v; })} />
-            <TextField label="標題" value={kidsPage.policyTitle} onChange={(v) => update((d) => { d.kidsPage.policyTitle = v; })} />
-          </div>
-          <div className="flex justify-end">
-            <AddButton onClick={() => update((d) => { d.kidsPage.policies.push({ icon: '📌', title: '', description: '' }); })}>新增說明</AddButton>
-          </div>
-          {kidsPage.policies.map((item, idx) => (
-            <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">說明 #{idx + 1}</span>
-                <div className="flex items-center gap-1">
-                  <OrderButtons
-                    index={idx}
-                    count={kidsPage.policies.length}
-                    onMove={(to) => update((d) => { const [m] = d.kidsPage.policies.splice(idx, 1); d.kidsPage.policies.splice(to, 0, m); })}
-                  />
-                  <RemoveButton onClick={() => update((d) => { d.kidsPage.policies.splice(idx, 1); })} />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-[6rem_1fr] gap-3">
-                <TextField label="圖示" value={item.icon} onChange={(v) => update((d) => { d.kidsPage.policies[idx].icon = v; })} />
-                <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.kidsPage.policies[idx].title = v; })} />
-              </div>
-              <Field label="內容">
-                <textarea rows={3} value={item.description} onChange={(e) => update((d) => { d.kidsPage.policies[idx].description = e.target.value; })} className={inputClass} />
-              </Field>
-            </div>
-          ))}
-        </div>
         <TextField label="底部報名按鈕文字" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
       </Card>
 
