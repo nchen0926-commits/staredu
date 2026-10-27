@@ -87,12 +87,12 @@ export default function CourseCard({ course }: CourseCardProps) {
           </h3>
 
           {/* Description */}
-          <p className="text-sm text-slate-600 line-clamp-2 mb-4 leading-relaxed flex-grow">
+          <p className="text-base text-slate-600 line-clamp-3 mb-4 leading-relaxed flex-grow">
             {course.description}
           </p>
 
           {/* Metadata */}
-          <div className="space-y-1.5 text-xs text-slate-500 mb-5 border-t border-slate-100 pt-3">
+          <div className="space-y-1.5 text-sm text-slate-500 mb-5 border-t border-slate-100 pt-3">
             {course.duration && (
               <div className="flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-slate-400" />
@@ -131,7 +131,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             <button
               onClick={handleEnroll}
               disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-base text-white bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -68,13 +68,6 @@ export interface KidsEnrollStep {
   description: string;
 }
 
-/** A button under 報名流程 that leads to one product page. */
-export interface KidsProductLink {
-  title: string;
-  description: string;
-  url: string;
-}
-
 /** One of the 三大收穫 pastel cards on 小管家兒童理財. */
 export interface KidsGain {
   icon: string;
@@ -194,12 +187,18 @@ export interface SiteContent {
     audienceList: string;
     benefitsTitle: string;
     benefitsList: string;
-    audienceNote: string;
     /** 報名流程 + 各產品頁入口. */
     enrollBadge: string;
     enrollTitle: string;
     enrollSteps: KidsEnrollStep[];
-    productLinks: KidsProductLink[];
+    enrollButtonText: string;
+    heroCtaText: string;
+    introText: string;
+    /** 創辦人一句話 (shown before the final CTA; empty hides it). */
+    founderQuote: string;
+    founderName: string;
+    founderLinkText: string;
+    founderLinkUrl: string;
     learningMap: {
       title: string;
       subtitle: string;
@@ -415,7 +414,6 @@ export const defaultSiteContent: SiteContent = {
     audienceList: '有 5–12 歲孩子的家庭\n零基礎或懂一些理財的爸媽\n想給孩子商業啟蒙的家長們\n注重孩子正向價值觀的父母',
     benefitsTitle: '報名後，家長可以獲得',
     benefitsList: '充實自己，【優化】自己的理財觀念；告別似懂非懂，擁有和孩子談論金錢的【底氣】\n能夠掌握日常親子理財對話及引導方向，享受【優質的互動】\n增加日常親子【財務話題上的互動】，和孩子一起觀察【商業的世界】，建立孩子的【正向價值觀與品格】',
-    audienceNote: '要準備的只有一個可以上網的設備，手機也可以。要不要陪孩子一起上，由您自由選擇。',
     enrollBadge: '報名流程',
     enrollTitle: '報名只要 4 個步驟',
     enrollSteps: [
@@ -424,11 +422,13 @@ export const defaultSiteContent: SiteContent = {
       { title: '完成付款', description: '依頁面說明完成報名' },
       { title: '準時上課', description: '課前會收到通知，準時參加就好' },
     ],
-    productLinks: [
-      { title: '線上直播課', description: '在家上，每週六一起上', url: 'https://live.e-staredu.com' },
-      { title: '英文繪本小小理財家', description: '用英文繪本，學理財', url: 'https://english.e-staredu.com' },
-      { title: '小店長創業課', description: '孩子當小店長，真的做生意', url: 'https://store.e-staredu.com' },
-    ],
+    founderQuote: '投資下一代的財商',
+    founderName: '陳亮君（亮亮老師）',
+    founderLinkText: '背景介紹',
+    founderLinkUrl: 'https://live.e-staredu.com/#about',
+    enrollButtonText: '選課程 ↓',
+    heroCtaText: '看現有課程 ↓',
+    introText: '嗨，我是陳亮君（亮亮老師）',
     learningMap: {
       title: '兒童理財學習地圖',
       subtitle: 'KIDS FINANCIAL LITERACY LEARNING MAP',

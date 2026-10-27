@@ -18,7 +18,7 @@ function withBold(text: string): ReactNode[] {
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-block px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-sm font-black">{children}</span>
+    <span className="inline-block px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-base font-black">{children}</span>
   );
 }
 
@@ -37,10 +37,10 @@ export function AudienceSection({ page }: { page: KidsPage }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {audience.length > 0 && (
           <div className="bg-white rounded-3xl border border-white/70 shadow-md p-6 sm:p-8 space-y-4">
-            <h3 className="text-xl font-black text-slate-800">{page.audienceListTitle}</h3>
+            <h3 className="text-2xl font-black text-slate-800">{page.audienceListTitle}</h3>
             <ul className="space-y-3">
               {audience.map((t, i) => (
-                <li key={i} className="flex gap-3 text-lg font-bold text-slate-700 leading-snug">
+                <li key={i} className="flex gap-3 text-xl font-bold text-slate-700 leading-snug">
                   <span aria-hidden="true" className="text-amber-500">✔</span>
                   <span>{t}</span>
                 </li>
@@ -50,10 +50,10 @@ export function AudienceSection({ page }: { page: KidsPage }) {
         )}
         {benefits.length > 0 && (
           <div className="bg-amber-50 rounded-3xl border border-amber-100 shadow-md p-6 sm:p-8 space-y-4">
-            <h3 className="text-xl font-black text-slate-800">☀ {page.benefitsTitle}</h3>
+            <h3 className="text-2xl font-black text-slate-800">☀ {page.benefitsTitle}</h3>
             <ul className="space-y-3">
               {benefits.map((t, i) => (
-                <li key={i} className="flex gap-3 text-base sm:text-lg text-slate-700 leading-relaxed">
+                <li key={i} className="flex gap-3 text-lg sm:text-xl text-slate-700 leading-relaxed">
                   <span aria-hidden="true" className="text-amber-500">✔</span>
                   <span>{withBold(t)}</span>
                 </li>
@@ -62,18 +62,14 @@ export function AudienceSection({ page }: { page: KidsPage }) {
           </div>
         )}
       </div>
-      {page.audienceNote && (
-        <p className="text-center text-base sm:text-lg font-bold" style={{ color: onBg }}>{page.audienceNote}</p>
-      )}
     </div>
   );
 }
 
-/** 報名流程 + 各產品頁入口 */
+/** 報名流程：最後一步的按鈕跳回現有課程 */
 export function EnrollSection({ page }: { page: KidsPage }) {
   const onBg = readableTextColor(page.bgColor);
-  const links = page.productLinks.filter((l) => l.url);
-  if (page.enrollSteps.length === 0 && links.length === 0) return null;
+  if (page.enrollSteps.length === 0) return null;
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="text-center space-y-3" style={{ color: onBg }}>
@@ -83,26 +79,22 @@ export function EnrollSection({ page }: { page: KidsPage }) {
       <ol className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {page.enrollSteps.map((s, i) => (
           <li key={i} className="bg-white rounded-3xl border border-white/70 shadow-md p-5 flex gap-4 items-start">
-            <span className="shrink-0 w-10 h-10 rounded-full bg-amber-400 text-white font-black flex items-center justify-center">{i + 1}</span>
+            <span className="shrink-0 w-11 h-11 rounded-full bg-amber-400 text-white text-xl font-black flex items-center justify-center">{i + 1}</span>
             <div className="space-y-1">
-              <p className="text-lg font-black text-slate-800">{s.title}</p>
-              <p className="text-base text-slate-600 leading-relaxed">{s.description}</p>
+              <p className="text-xl font-black text-slate-800">{s.title}</p>
+              <p className="text-lg text-slate-600 leading-relaxed">{s.description}</p>
             </div>
           </li>
         ))}
       </ol>
-      {links.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {links.map((l, i) => (
-            <a
-              key={i}
-              href={l.url}
-              className="group bg-blue-600 hover:bg-blue-700 text-white rounded-3xl shadow-lg shadow-blue-900/20 p-5 text-center space-y-1 transition-all active:scale-95"
-            >
-              <p className="text-lg font-black">{l.title} →</p>
-              {l.description && <p className="text-sm opacity-90">{l.description}</p>}
-            </a>
-          ))}
+      {page.enrollButtonText && (
+        <div className="text-center">
+          <a
+            href="#courses"
+            className="inline-flex items-center px-10 py-4 rounded-2xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
+          >
+            {page.enrollButtonText}
+          </a>
         </div>
       )}
     </div>

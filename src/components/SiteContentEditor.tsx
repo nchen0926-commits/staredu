@@ -663,13 +663,12 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
           <div>
             <span className="text-sm font-bold text-slate-800">家長回饋區塊</span>
-            <p className="text-xs text-slate-400 mt-0.5">內容在下方「學員與活動成果」新增：有「文字留言」的顯示成「頭像在左、文字在右」，有「截圖／照片」的集中放在最下面</p>
+            <p className="text-xs text-slate-400 mt-0.5">內容在下方「學員與活動成果」新增，有「文字留言」的會顯示成「頭像在左、文字在右」</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField label="區塊標題" value={kidsPage.storiesTitle} onChange={(v) => update((d) => { d.kidsPage.storiesTitle = v; })} />
             <TextField label="區塊說明（選填）" value={kidsPage.storiesSubtitle} onChange={(v) => update((d) => { d.kidsPage.storiesSubtitle = v; })} />
           </div>
-          <TextField label="LINE 截圖區小標題" value={kidsPage.screenshotsTitle} onChange={(v) => update((d) => { d.kidsPage.screenshotsTitle = v; })} />
         </div>
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
           <div>
@@ -688,13 +687,12 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           <Field label="右框清單（一行一點，【】內為粗體）">
             <textarea rows={5} value={kidsPage.benefitsList} onChange={(e) => update((d) => { d.kidsPage.benefitsList = e.target.value; })} className={inputClass} />
           </Field>
-          <TextField label="補充一句" value={kidsPage.audienceNote} onChange={(v) => update((d) => { d.kidsPage.audienceNote = v; })} />
         </div>
 
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
           <div>
             <span className="text-sm font-bold text-slate-800">報名流程</span>
-            <p className="text-xs text-slate-400 mt-0.5">放在課程清單下方，下面的按鈕帶訪客到各產品頁；網址留空的按鈕不會顯示</p>
+            <p className="text-xs text-slate-400 mt-0.5">放在家長回饋下方</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField label="小標籤" value={kidsPage.enrollBadge} onChange={(v) => update((d) => { d.kidsPage.enrollBadge = v; })} />
@@ -723,35 +721,20 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
               </div>
             ))}
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-800">各產品頁按鈕</span>
-              <AddButton onClick={() => update((d) => { d.kidsPage.productLinks.push({ title: '', description: '', url: '' }); })}>新增按鈕</AddButton>
-            </div>
-            {kidsPage.productLinks.map((item, idx) => (
-              <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">按鈕 #{idx + 1}</span>
-                  <div className="flex items-center gap-1">
-                    <OrderButtons
-                      index={idx}
-                      count={kidsPage.productLinks.length}
-                      onMove={(to) => update((d) => { const [m] = d.kidsPage.productLinks.splice(idx, 1); d.kidsPage.productLinks.splice(to, 0, m); })}
-                    />
-                    <RemoveButton onClick={() => update((d) => { d.kidsPage.productLinks.splice(idx, 1); })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <TextField label="課程名稱" value={item.title} onChange={(v) => update((d) => { d.kidsPage.productLinks[idx].title = v; })} />
-                  <TextField label="一句說明" value={item.description} onChange={(v) => update((d) => { d.kidsPage.productLinks[idx].description = v; })} />
-                </div>
-                <TextField label="產品頁網址" value={item.url} onChange={(v) => update((d) => { d.kidsPage.productLinks[idx].url = v; })} />
-              </div>
-            ))}
-          </div>
+          <TextField label="最後一步的按鈕文字" value={kidsPage.enrollButtonText} onChange={(v) => update((d) => { d.kidsPage.enrollButtonText = v; })} />
         </div>
 
-        <TextField label="底部報名按鈕文字" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="開頭按鈕文字" value={kidsPage.heroCtaText} onChange={(v) => update((d) => { d.kidsPage.heroCtaText = v; })} />
+          <TextField label="認識我是誰（開頭下方一句）" value={kidsPage.introText} onChange={(v) => update((d) => { d.kidsPage.introText = v; })} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <TextField label="創辦人一句話（放在結尾前，留空就不顯示）" value={kidsPage.founderQuote} onChange={(v) => update((d) => { d.kidsPage.founderQuote = v; })} />
+          <TextField label="署名" value={kidsPage.founderName} onChange={(v) => update((d) => { d.kidsPage.founderName = v; })} />
+          <TextField label="連結文字（留空就不顯示）" value={kidsPage.founderLinkText} onChange={(v) => update((d) => { d.kidsPage.founderLinkText = v; })} />
+          <TextField label="連結網址" value={kidsPage.founderLinkUrl} onChange={(v) => update((d) => { d.kidsPage.founderLinkUrl = v; })} />
+        </div>
+        <TextField label="報名按鈕文字（中段、結尾、手機下方固定按鈕）" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
       </Card>
 
       <Card title="大人的理財" description="成人理財頁的標題、需求分流卡片、文章區塊標題與課程籌備區塊">
