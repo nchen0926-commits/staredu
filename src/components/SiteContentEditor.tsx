@@ -239,7 +239,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
     }
   };
 
-  const { brand, nav, home, kidsPage, adultPage, enterprisePage, footer, testimonials, pages, leadCapture } = data;
+  const { brand, nav, home, kidsPage, adultPage, articlesPage, enterprisePage, footer, testimonials, pages, leadCapture } = data;
   const SEGMENT_OPTIONS: Array<{ value: SiteContent['testimonials']['items'][number]['segment']; label: string }> = [
     { value: 'kids', label: '小管家兒童理財' },
     { value: 'adult', label: '大人的理財' },
@@ -823,6 +823,47 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         </div>
 
         <TextField label="報名按鈕文字（中段、結尾、手機下方固定按鈕）" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
+      </Card>
+
+      <Card title="文章分類" description="文章頁上方的分類按鈕、寫文章時的分類選單，都用這裡的清單。簡單管理就好">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-800">分類清單</span>
+            <AddButton onClick={() => update((d) => { d.articlesPage.categories.push({ name: '' }); })}>新增分類</AddButton>
+          </div>
+          {articlesPage.categories.map((item, idx) => (
+            <div key={idx} className="flex items-end gap-2">
+              <div className="flex-1">
+                <TextField label={`分類 ${idx + 1}`} value={item.name} onChange={(v) => update((d) => { d.articlesPage.categories[idx].name = v; })} />
+              </div>
+              <OrderButtons
+                index={idx}
+                count={articlesPage.categories.length}
+                onMove={(to) => update((d) => { const [m] = d.articlesPage.categories.splice(idx, 1); d.articlesPage.categories.splice(to, 0, m); })}
+              />
+              <RemoveButton onClick={() => update((d) => { d.articlesPage.categories.splice(idx, 1); })} />
+            </div>
+          ))}
+          <p className="text-xs text-slate-400">改名或刪除分類後，原本在這個分類的文章會變成「未分類」顯示（文章還在），請到文章管理重新選分類。</p>
+        </div>
+        <TextField
+          label="「大人的理財」頁要顯示哪個分類的文章"
+          hint="填上面其中一個分類名稱；留空就顯示最新文章"
+          value={articlesPage.adultCategory}
+          onChange={(v) => update((d) => { d.articlesPage.adultCategory = v; })}
+        />
+        <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200/80 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={articlesPage.showStats}
+            onChange={(e) => update((d) => { d.articlesPage.showStats = e.target.checked; })}
+            className="w-5 h-5"
+          />
+          <span>
+            <span className="block text-sm font-bold text-slate-800">對訪客顯示閱讀次數</span>
+            <span className="block text-xs text-slate-400">關閉時，閱讀次數照樣記錄、你在文章管理看得到，訪客看不到。等數字好看再打開</span>
+          </span>
+        </label>
       </Card>
 
       <Card title="大人的理財" description="成人理財頁的標題、需求分流卡片、文章區塊標題與課程籌備區塊">

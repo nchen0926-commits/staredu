@@ -12,12 +12,13 @@ export default function AdultFinance() {
   const page = content.adultPage;
   const [articles, setArticles] = useState<Article[]>([]);
 
+  const adultCategory = content.articlesPage.adultCategory;
   useEffect(() => {
-    fetch('/api/articles?category=' + encodeURIComponent('大人理財'))
+    fetch('/api/articles' + (adultCategory ? '?category=' + encodeURIComponent(adultCategory) : ''))
       .then((res) => res.json())
       .then((data) => setArticles(Array.isArray(data) ? data.slice(0, 6) : []))
       .catch(console.error);
-  }, []);
+  }, [adultCategory]);
 
   return (
     <div className="space-y-16 pb-20">

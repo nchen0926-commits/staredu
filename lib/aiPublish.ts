@@ -2,7 +2,7 @@ import crypto from "crypto";
 import dns from "node:dns/promises";
 import net from "node:net";
 import express from "express";
-import { safeUrl } from "./siteContent";
+import { resolveSiteContent, safeUrl } from "./siteContent";
 import * as db from "./db";
 import { handleMcp } from "./aiMcp";
 
@@ -19,7 +19,15 @@ import { handleMcp } from "./aiMcp";
  */
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-export const ARTICLE_CATEGORIES = new Set(["大人理財", "兒童理財", "企業永續", "金融科技"]);
+/** The categories the owner manages in 後台 → 網站內容 → 文章分類. */
+export async function loadCategories(): Promise<Set<string>> {
+  try {
+    const content = resolveSiteContent(await db.getSiteContent());
+    return new Set(content.articlesPage.categories.map((c) => c.name).filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
 
 const MIN_KEY_LENGTH = 32;
 const IMAGE_TYPES: Record<string, string> = {
@@ -79,7 +87,7 @@ const pick = (body: any, ...names: string[]) => {
 
 type Parsed = { input: db.ArticleInput } | { error: string };
 
-function parseAiArticle(body: any): Parsed {
+function parseAiArticle(body: any, categories: Set<string>): Parsed {
   if (!body || typeof body !== "object" || Array.isArray(body)) return { error: "請以 JSON 物件送出文章資料" };
 
   const title = String(pick(body, "title") ?? "").trim();
@@ -100,8 +108,8 @@ function parseAiArticle(body: any): Parsed {
   if (status !== "draft" && status !== "published") return { error: 'status 只能是 "draft" 或 "published"' };
 
   const category = String(pick(body, "category") ?? "").trim();
-  if (category && !ARTICLE_CATEGORIES.has(category)) {
-    return { error: `category 只能是：${[...ARTICLE_CATEGORIES].join("、")}（或留空）` };
+  if (category && !categories.has(category)) {
+    return { error: `category 只能是：${[...categories].join("、")}（或留空）` };
   }
 
   const coverRaw = String(pick(body, "coverImage", "cover_image") ?? "").trim();
@@ -134,7 +142,7 @@ function parseAiArticle(body: any): Parsed {
 
 /** Shared by the REST endpoint and the MCP tool so both follow identical rules. */
 export async function createArticleCore(body: unknown): Promise<{ status: number; body: Record<string, unknown> }> {
-  const parsed = parseAiArticle(body);
+  const parsed = parseAiArticle(body, await loadCategories());
   if ("error" in parsed) return { status: 400, body: { error: parsed.error } };
   try {
     if (await db.getArticleByKey(parsed.input.slug)) {

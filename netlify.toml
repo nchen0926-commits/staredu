@@ -40,6 +40,12 @@
   force = true
 
 [[redirects]]
+  from = "/rss.xml"
+  to = "/.netlify/functions/seo?route=rss"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/llms.txt"
   to = "/.netlify/functions/seo?route=llms"
   status = 200

@@ -4,6 +4,7 @@ import { Article } from '../types';
 import { formatImageUrl } from '../utils/imageUtils';
 import { formatDateTime } from '../utils/formatDate';
 import { sanitizeArticleHtml } from '../utils/sanitizeHtml';
+import { useSiteContent } from '../hooks/useSiteContent';
 import ImageUploadField from './ImageUploadField';
 import RichTextEditor from './RichTextEditor';
 
@@ -26,7 +27,6 @@ interface ArticleForm {
   publishedLocal: string; // Taipei time, "YYYY-MM-DDTHH:mm"
 }
 
-const CATEGORIES = ['大人理財', '兒童理財', '企業永續', '金融科技'];
 
 type Status = 'draft' | 'scheduled' | 'live';
 
@@ -63,6 +63,8 @@ const toForm = (article: Article): ArticleForm => ({
 });
 
 export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesManagerProps) {
+  const { content: siteContent } = useSiteContent();
+  const categoryNames = siteContent.articlesPage.categories.map((c) => c.name).filter(Boolean);
   const [articles, setArticles] = useState<Article[] | null>(null);
   const [loadError, setLoadError] = useState('');
   const [form, setForm] = useState<ArticleForm | null>(null);
@@ -199,7 +201,7 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            分類<span className="ml-2 font-normal text-slate-400">決定文章顯示在「大人的理財」等哪個頁面、也用於文章頁的分類篩選</span>
+            分類<span className="ml-2 font-normal text-slate-400">分類可以在「網站內容 → 文章分類」自己新增、修改</span>
           </label>
           <select
             value={form.category}
@@ -207,7 +209,7 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
             className={inputClass}
           >
             <option value="">未分類</option>
-            {CATEGORIES.map((c) => (
+            {(form.category && !categoryNames.includes(form.category) ? [...categoryNames, form.category] : categoryNames).map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>

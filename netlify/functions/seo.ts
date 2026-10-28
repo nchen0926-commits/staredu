@@ -7,6 +7,7 @@ import { descriptionFromHtml, escapeHtml, htmlToSemantic, parseFaq, renderPage }
  *   /articles, /articles/:key  -> real HTML, meta tags and structured data
  *   /faq                       -> Q&A HTML + FAQPage structured data
  *   /sitemap.xml               -> generated from the live articles
+ *   /rss.xml                   -> newest published articles as an RSS feed (for the weekly newsletter)
  *   /llms.txt                  -> plain-language site guide for AI assistants
  * Everything else about the site is still the normal client-side app; if
  * anything here fails we fall back to serving that app's index.html.
@@ -29,6 +30,7 @@ const CACHE = "public, max-age=0, s-maxage=120, stale-while-revalidate=300";
 
 type Route =
   | { type: "sitemap" }
+  | { type: "rss" }
   | { type: "llms" }
   | { type: "articles" }
   | { type: "article"; key: string }
@@ -52,6 +54,7 @@ function resolveRoute(event: NetlifyEvent): Route {
       // keep as is
     }
     if (path === "/sitemap.xml") return { type: "sitemap" };
+    if (path === "/rss.xml") return { type: "rss" };
     if (path === "/llms.txt") return { type: "llms" };
     if (path === "/faq") return { type: "faq" };
     if (/^\/articles\/?$/.test(path)) return { type: "articles" };
@@ -61,6 +64,7 @@ function resolveRoute(event: NetlifyEvent): Route {
 
   const hint = event.queryStringParameters?.route;
   if (hint === "sitemap") return { type: "sitemap" };
+  if (hint === "rss") return { type: "rss" };
   if (hint === "llms") return { type: "llms" };
   if (hint === "articles") return { type: "articles" };
   if (hint === "faq") return { type: "faq" };
@@ -110,6 +114,49 @@ export const handler = async (event: NetlifyEvent): Promise<NetlifyResponse> => 
         statusCode: 200,
         headers: { "content-type": "application/xml; charset=utf-8", "cache-control": CACHE },
         body: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`,
+      };
+    }
+
+    if (route.type === "rss") {
+      // Only live (published, time reached) articles; newest first, as RSS-to-email tools expect.
+      const articles = (await db.listArticles(true).catch(() => [] as db.Article[]))
+        .slice()
+        .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+        .slice(0, 30);
+      const abs = (u: string) => (u.startsWith("/") ? `${SITE}${u}` : u);
+      const items = articles.map((a) => {
+        const cover = a.coverImage ? abs(safeUrl(a.coverImage)) : "";
+        const desc = a.summary || a.seoDescription || "";
+        return [
+          "    <item>",
+          `      <title>${escapeHtml(a.title)}</title>`,
+          `      <link>${escapeHtml(articleUrl(a))}</link>`,
+          `      <guid isPermaLink="true">${escapeHtml(articleUrl(a))}</guid>`,
+          `      <pubDate>${new Date(a.publishedAt).toUTCString()}</pubDate>`,
+          a.category ? `      <category>${escapeHtml(a.category)}</category>` : "",
+          `      <description>${escapeHtml(desc)}</description>`,
+          cover ? `      <enclosure url="${escapeHtml(cover)}" type="image/jpeg" length="0" />` : "",
+          "    </item>",
+        ].filter(Boolean).join("\n");
+      });
+      const feed = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<rss version="2.0">',
+        "  <channel>",
+        `    <title>${escapeHtml(brand)}</title>`,
+        `    <link>${SITE}/articles</link>`,
+        `    <description>${escapeHtml(content.brand.tagline || content.footer.description || brand)}</description>`,
+        "    <language>zh-TW</language>",
+        `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
+        ...items,
+        "  </channel>",
+        "</rss>",
+        "",
+      ].join("\n");
+      return {
+        statusCode: 200,
+        headers: { "content-type": "application/rss+xml; charset=utf-8", "cache-control": CACHE },
+        body: feed,
       };
     }
 

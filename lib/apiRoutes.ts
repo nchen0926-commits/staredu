@@ -13,7 +13,7 @@ import {
   SESSION_COOKIE_NAME,
 } from "./adminAuth";
 import * as db from "./db";
-import { createAiPublishRouter, ARTICLE_CATEGORIES, SLUG_PATTERN } from "./aiPublish";
+import { createAiPublishRouter, loadCategories, SLUG_PATTERN } from "./aiPublish";
 
 let stripeClient: Stripe | null = null;
 const getStripe = () => {
@@ -135,7 +135,7 @@ export function createApiRouter(): express.Router {
   const BOT_AGENT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i;
 
   // Returns the cleaned article, or a message describing what is wrong.
-  const parseArticle = (input: any): db.ArticleInput | string => {
+  const parseArticle = (input: any, categories: Set<string>): db.ArticleInput | string => {
     const title = String(input?.title ?? "").trim().slice(0, 200);
     if (!title) return "請填寫文章標題";
 
@@ -153,19 +153,21 @@ export function createApiRouter(): express.Router {
       author: String(input?.author ?? "").trim().slice(0, 60),
       coverImage: safeUrl(String(input?.coverImage ?? "")),
       body: String(input?.body ?? "").slice(0, 200000),
-      category: ARTICLE_CATEGORIES.has(String(input?.category ?? "")) ? String(input.category) : "",
+      category: categories.has(String(input?.category ?? "")) ? String(input.category) : "",
       published: Boolean(input?.published),
       publishedAt: Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString(),
     };
   };
 
   // Public list: only articles that are live (published and their time has come), no body text.
-  // ?category= filters to one of ARTICLE_CATEGORIES (used by 大人的理財／理財文章 pages).
+  // ?category= filters to one of the categories managed in 網站內容 (used by 大人的理財／理財文章 pages).
   router.get("/articles", async (req, res) => {
     try {
       const { category } = req.query;
       const articles = await db.listArticles(true, typeof category === "string" ? category : undefined);
-      res.json(articles.map(({ body, viewCount, ...rest }) => rest));
+      // Reading counts are always recorded; they are only sent to visitors when the owner switches them on.
+      const showStats = resolveSiteContent(await db.getSiteContent()).articlesPage.showStats;
+      res.json(articles.map(({ body, viewCount, ...rest }) => (showStats ? { ...rest, viewCount } : rest)));
     } catch (err) {
       // Keep the public page working (empty) if the table isn't set up yet.
       console.error("Load articles error:", err);
@@ -183,7 +185,8 @@ export function createApiRouter(): express.Router {
       }
       if (admin) return res.json(article);
       const { viewCount, ...publicArticle } = article;
-      res.json(publicArticle);
+      const showStats = resolveSiteContent(await db.getSiteContent()).articlesPage.showStats;
+      res.json(showStats ? { ...publicArticle, viewCount } : publicArticle);
     } catch (err: any) {
       console.error("Load article error:", err);
       res.status(500).json({ error: err?.message || "讀取文章失敗" });
@@ -216,7 +219,7 @@ export function createApiRouter(): express.Router {
 
   router.post("/articles", requireAdmin, async (req, res) => {
     try {
-      const input = parseArticle(req.body);
+      const input = parseArticle(req.body, await loadCategories());
       if (typeof input === "string") return res.status(400).json({ error: input });
       res.json({ success: true, article: await db.createArticle(input) });
     } catch (err: any) {
@@ -227,7 +230,7 @@ export function createApiRouter(): express.Router {
 
   router.put("/articles/:id", requireAdmin, async (req, res) => {
     try {
-      const input = parseArticle(req.body);
+      const input = parseArticle(req.body, await loadCategories());
       if (typeof input === "string") return res.status(400).json({ error: input });
       const article = await db.updateArticle(req.params.id, input);
       if (!article) return res.status(404).json({ error: "找不到這篇文章" });

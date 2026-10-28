@@ -136,6 +136,11 @@ export interface ServiceItem {
   description: string;
 }
 
+/** One article category (the tab on 理財文章 and the dropdown when writing an article). */
+export interface ArticleCategory {
+  name: string;
+}
+
 export interface SiteContent {
   brand: {
     name: string;
@@ -225,6 +230,13 @@ export interface SiteContent {
       stages: LearningMapStage[];
       rows: LearningMapRow[];
     };
+  };
+  articlesPage: {
+    categories: ArticleCategory[];
+    /** Show reading counts to visitors (always recorded in the admin either way). */
+    showStats: boolean;
+    /** The 大人的理財 page lists articles of this category (empty = latest articles of any category). */
+    adultCategory: string;
   };
   adultPage: {
     heroTitle: string;
@@ -522,6 +534,16 @@ export const defaultSiteContent: SiteContent = {
         },
       ],
     },
+  },
+  articlesPage: {
+    categories: [
+      { name: '兒童財商入門' },
+      { name: '孩子的金錢觀' },
+      { name: '投資理財基本功' },
+      { name: '商業思維' },
+    ],
+    showStats: false,
+    adultCategory: '投資理財基本功',
   },
   adultPage: {
     heroTitle: '錢賺了這麼多年，\n是時候真正搞懂它了。',

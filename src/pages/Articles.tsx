@@ -5,10 +5,12 @@ import Seo from '../components/Seo';
 import { Article } from '../types';
 import { formatImageUrl } from '../utils/imageUtils';
 import { formatDate } from '../utils/formatDate';
-
-const CATEGORIES = ['大人理財', '兒童理財', '企業永續', '金融科技'];
+import { useSiteContent } from '../hooks/useSiteContent';
 
 export default function Articles() {
+  const { content } = useSiteContent();
+  const CATEGORIES = content.articlesPage.categories.map((c) => c.name).filter(Boolean);
+  const showStats = content.articlesPage.showStats;
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('');
@@ -26,7 +28,14 @@ export default function Articles() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 space-y-10">
       <Seo title="理財文章" description="星育學苑的理財文章：大人的理財、小管家兒童理財、企業永續合作與金融科技學習分享。" />
-      <h1 className="text-3xl sm:text-4xl font-black text-slate-900">理財文章</h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-900">理財文章</h1>
+        {showStats && articles.length > 0 && (
+          <p className="text-base font-bold text-slate-500">
+            共 {articles.length} 篇文章，累計閱讀 {articles.reduce((sum, a) => sum + (a.viewCount ?? 0), 0).toLocaleString()} 次
+          </p>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <button
@@ -75,7 +84,11 @@ export default function Articles() {
                 </div>
               )}
               <div className="p-5 sm:p-6 space-y-2">
-                <p className="text-xs font-bold text-amber-600">{formatDate(article.publishedAt)}</p>
+                <p className="text-xs font-bold text-amber-600">
+                  {article.category && <span className="mr-2 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700">{article.category}</span>}
+                  {formatDate(article.publishedAt)}
+                  {showStats && <span className="ml-2 text-slate-400">👁 {(article.viewCount ?? 0).toLocaleString()}</span>}
+                </p>
                 <h2 className="text-lg font-bold text-slate-900 line-clamp-2 group-hover:text-amber-600 transition-colors">
                   {article.title}
                 </h2>
