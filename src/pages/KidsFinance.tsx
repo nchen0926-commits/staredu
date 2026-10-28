@@ -3,7 +3,7 @@ import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import ParentFeedbackSection from '../components/ParentFeedbackSection';
-import { AudienceSection, EnrollSection } from '../components/SignupInfoSections';
+import { AudienceSection, ClassPhotos, EnrollSection } from '../components/SignupInfoSections';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor } from '../../lib/siteContent';
@@ -34,30 +34,44 @@ export default function KidsFinance() {
         description="小管家兒童理財是星育學苑旗下的兒童金融教育品牌，用原創故事、遊戲與生活任務，陪孩子建立受用一生的金錢觀念。"
       />
 
-      {/* Hero */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4" style={{ color: onBg }}>
-        <h1 className="text-3xl sm:text-5xl font-black leading-tight">{page.heroTitle}</h1>
-        <p className="text-lg sm:text-2xl leading-relaxed max-w-2xl mx-auto opacity-85">{page.heroSubtitle}</p>
-        <div className="pt-2">
-          <a
-            href="#courses"
-            className="inline-flex items-center px-10 py-4 rounded-2xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
-          >
-            {page.heroCtaText}
-          </a>
+      {/* Hero：左文字、右照片 */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="text-center md:text-left space-y-5" style={{ color: onBg }}>
+            <h1 className="text-4xl sm:text-5xl font-black leading-tight">{page.heroTitle}</h1>
+            <p className="text-xl sm:text-2xl leading-relaxed opacity-85">{page.heroSubtitle}</p>
+            <a
+              href="#courses"
+              className="inline-flex items-center px-10 py-4 rounded-2xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
+            >
+              {page.heroCtaText}
+            </a>
+          </div>
+          {page.heroImageUrl && (
+            <img
+              src={formatImageUrl(page.heroImageUrl)}
+              alt="孩子們開心地一起上理財課"
+              className="w-full aspect-[4/3] object-cover rounded-[2rem] shadow-xl border-8 border-white/80"
+            />
+          )}
         </div>
       </div>
 
       {/* 認識我是誰（短版，連到外部介紹） */}
       {page.introText && (
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex flex-wrap items-center justify-center gap-x-4 gap-y-2 bg-white/80 rounded-3xl px-6 py-3 shadow-sm">
-            <span className="text-lg sm:text-xl font-bold text-slate-800">{page.introText}</span>
-            {page.founderLinkUrl && (
-              <a href={page.founderLinkUrl} className="text-lg font-bold text-blue-700 underline underline-offset-4">
-                {page.founderLinkText} ↗
-              </a>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+          <div className="flex items-center gap-4 bg-white/85 rounded-full pl-2 pr-6 py-2 shadow-md">
+            {page.introImageUrl && (
+              <img src={formatImageUrl(page.introImageUrl)} alt="陳亮君 亮亮老師" className="w-16 h-16 rounded-full object-cover object-top shrink-0" />
             )}
+            <div className="text-left">
+              <p className="text-lg sm:text-xl font-bold text-slate-800 leading-snug">{page.introText}</p>
+              {page.founderLinkUrl && (
+                <a href={page.founderLinkUrl} className="text-base sm:text-lg font-bold text-blue-700 underline underline-offset-4">
+                  {page.founderLinkText} ↗
+                </a>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -136,6 +150,9 @@ export default function KidsFinance() {
         </div>
       )}
 
+      {/* 真實上課實況 */}
+      <ClassPhotos page={page} />
+
       {/* 中段報名按鈕 */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <a
@@ -176,7 +193,14 @@ export default function KidsFinance() {
 
       {/* 兒童理財學習地圖：4 個系列 × 3 個年齡層 */}
       {page.learningMap.rows.length > 0 && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <details className="group max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <summary className="list-none cursor-pointer text-center space-y-4 [&::-webkit-details-marker]:hidden" style={{ color: onBg }}>
+            <h2 className="text-3xl sm:text-4xl font-black">{page.learningMap.title}</h2>
+            <span className="inline-flex items-center px-8 py-3.5 rounded-2xl text-lg font-bold bg-white text-blue-700 shadow-md group-open:hidden">
+              {page.mapButtonText}
+            </span>
+          </summary>
+          <div className="pt-8">
           <div className="grid-paper rounded-[2.5rem] shadow-md px-4 sm:px-8 py-10 sm:py-14 space-y-8">
             <div className="text-center space-y-2">
               <h2 className="text-3xl sm:text-5xl font-black text-slate-800">{page.learningMap.title}</h2>
@@ -244,7 +268,8 @@ export default function KidsFinance() {
               ))}
             </div>
           </div>
-        </div>
+          </div>
+        </details>
       )}
 
       {/* 結尾：創辦人一句話 + 大按鈕 */}

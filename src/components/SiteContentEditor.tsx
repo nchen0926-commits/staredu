@@ -684,9 +684,89 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           <Field label="左框清單（一行一點）">
             <textarea rows={4} value={kidsPage.audienceList} onChange={(e) => update((d) => { d.kidsPage.audienceList = e.target.value; })} className={inputClass} />
           </Field>
-          <Field label="右框清單（一行一點，【】內為粗體）">
-            <textarea rows={5} value={kidsPage.benefitsList} onChange={(e) => update((d) => { d.kidsPage.benefitsList = e.target.value; })} className={inputClass} />
-          </Field>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">右框：報名後，家長可以獲得（圖示卡片）</span>
+              <AddButton onClick={() => update((d) => { d.kidsPage.benefits.push({ icon: '⭐', title: '', description: '' }); })}>新增一張</AddButton>
+            </div>
+            {kidsPage.benefits.map((item, idx) => (
+              <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">卡片 #{idx + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <OrderButtons
+                      index={idx}
+                      count={kidsPage.benefits.length}
+                      onMove={(to) => update((d) => { const [m] = d.kidsPage.benefits.splice(idx, 1); d.kidsPage.benefits.splice(to, 0, m); })}
+                    />
+                    <RemoveButton onClick={() => update((d) => { d.kidsPage.benefits.splice(idx, 1); })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-[6rem_1fr] gap-3">
+                  <TextField label="圖示" value={item.icon} onChange={(v) => update((d) => { d.kidsPage.benefits[idx].icon = v; })} />
+                  <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.kidsPage.benefits[idx].title = v; })} />
+                </div>
+                <TextField label="一句說明" value={item.description} onChange={(v) => update((d) => { d.kidsPage.benefits[idx].description = v; })} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
+          <div>
+            <span className="text-sm font-bold text-slate-800">照片</span>
+            <p className="text-xs text-slate-400 mt-0.5">開頭大圖、老師照片、「真實上課實況」相簿（第一張會放最寬）</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="開頭大圖">
+              <ImageUploadField
+                value={kidsPage.heroImageUrl}
+                onChange={(url) => update((d) => { d.kidsPage.heroImageUrl = url; })}
+                placeholder="按右邊「上傳圖片」，或貼上圖片網址"
+                onError={(msg) => onToast(msg, 'error')}
+                onUnauthorized={onUnauthorized}
+              />
+            </Field>
+            <Field label="老師照片（認識我是誰）">
+              <ImageUploadField
+                value={kidsPage.introImageUrl}
+                onChange={(url) => update((d) => { d.kidsPage.introImageUrl = url; })}
+                placeholder="按右邊「上傳圖片」，或貼上圖片網址"
+                onError={(msg) => onToast(msg, 'error')}
+                onUnauthorized={onUnauthorized}
+              />
+            </Field>
+          </div>
+          <TextField label="相簿標題" value={kidsPage.classPhotosTitle} onChange={(v) => update((d) => { d.kidsPage.classPhotosTitle = v; })} />
+          <div className="flex justify-end">
+            <AddButton onClick={() => update((d) => { d.kidsPage.classPhotos.push({ imageUrl: '', caption: '' }); })}>新增照片</AddButton>
+          </div>
+          {kidsPage.classPhotos.map((item, idx) => (
+            <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">照片 #{idx + 1}</span>
+                <div className="flex items-center gap-1">
+                  <OrderButtons
+                    index={idx}
+                    count={kidsPage.classPhotos.length}
+                    onMove={(to) => update((d) => { const [m] = d.kidsPage.classPhotos.splice(idx, 1); d.kidsPage.classPhotos.splice(to, 0, m); })}
+                  />
+                  <RemoveButton onClick={() => update((d) => { d.kidsPage.classPhotos.splice(idx, 1); })} />
+                </div>
+              </div>
+              <Field label="照片">
+                <ImageUploadField
+                  value={item.imageUrl}
+                  onChange={(url) => update((d) => { d.kidsPage.classPhotos[idx].imageUrl = url; })}
+                  placeholder="按右邊「上傳圖片」，或貼上圖片網址"
+                  onError={(msg) => onToast(msg, 'error')}
+                  onUnauthorized={onUnauthorized}
+                />
+              </Field>
+              <TextField label="照片說明（短短幾個字）" value={item.caption} onChange={(v) => update((d) => { d.kidsPage.classPhotos[idx].caption = v; })} />
+            </div>
+          ))}
+          <TextField label="學習地圖展開按鈕文字" value={kidsPage.mapButtonText} onChange={(v) => update((d) => { d.kidsPage.mapButtonText = v; })} />
         </div>
 
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">

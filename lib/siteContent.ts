@@ -62,6 +62,19 @@ export interface KidsHighlight {
   imageUrl: string;
 }
 
+/** One icon card of 「報名後，家長可以獲得」. */
+export interface KidsBenefit {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+/** One photo of the 真實上課實況 gallery. */
+export interface KidsPhoto {
+  imageUrl: string;
+  caption: string;
+}
+
 /** One step of the 報名流程 on 小管家兒童理財. */
 export interface KidsEnrollStep {
   title: string;
@@ -186,7 +199,12 @@ export interface SiteContent {
     audienceListTitle: string;
     audienceList: string;
     benefitsTitle: string;
-    benefitsList: string;
+    benefits: KidsBenefit[];
+    heroImageUrl: string;
+    introImageUrl: string;
+    classPhotosTitle: string;
+    classPhotos: KidsPhoto[];
+    mapButtonText: string;
     /** 報名流程 + 各產品頁入口. */
     enrollBadge: string;
     enrollTitle: string;
@@ -413,7 +431,22 @@ export const defaultSiteContent: SiteContent = {
     audienceListTitle: '適合小管家課程的對象',
     audienceList: '有 5–12 歲孩子的家庭\n零基礎或懂一些理財的爸媽\n想給孩子商業啟蒙的家長們\n注重孩子正向價值觀的父母',
     benefitsTitle: '報名後，家長可以獲得',
-    benefitsList: '充實自己，【優化】自己的理財觀念；告別似懂非懂，擁有和孩子談論金錢的【底氣】\n能夠掌握日常親子理財對話及引導方向，享受【優質的互動】\n增加日常親子【財務話題上的互動】，和孩子一起觀察【商業的世界】，建立孩子的【正向價值觀與品格】',
+    benefits: [
+      { icon: '🌟', title: '優化理財觀念', description: '和孩子談錢，更有底氣' },
+      { icon: '💬', title: '優質親子互動', description: '知道怎麼聊、怎麼引導' },
+      { icon: '🌱', title: '正向價值觀與品格', description: '一起觀察商業的世界' },
+    ],
+    heroImageUrl: '/assets/kids/offline-play.jpg',
+    introImageUrl: '/assets/kids/teacher.jpg',
+    classPhotosTitle: '真實上課實況',
+    classPhotos: [
+      { imageUrl: '/assets/kids/live-meet.jpg', caption: '22 個家庭，一起上線' },
+      { imageUrl: '/assets/kids/offline-play.jpg', caption: '動手玩' },
+      { imageUrl: '/assets/kids/story.jpg', caption: '聽故事' },
+      { imageUrl: '/assets/kids/offline-class.jpg', caption: '實體課現場' },
+      { imageUrl: '/assets/kids/think.jpg', caption: '動動腦' },
+    ],
+    mapButtonText: '看完整學習地圖 ↓',
     enrollBadge: '報名流程',
     enrollTitle: '報名只要 4 個步驟',
     enrollSteps: [
