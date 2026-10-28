@@ -123,3 +123,42 @@ export function EnrollSection({ page }: { page: KidsPage }) {
     </div>
   );
 }
+
+/** 家長回饋下方：左邊兩張照片並排、右邊疊三則 LINE 訊息 */
+export function FeedbackVisuals({ page }: { page: KidsPage }) {
+  const photos = page.feedbackPhotos.filter((p) => p.imageUrl);
+  const lineMsgs = page.feedbackLines.filter((p) => p.imageUrl);
+  if (photos.length === 0 && lineMsgs.length === 0) return null;
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 items-center">
+        {photos.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {photos.map((p, i) => (
+              <img
+                key={i}
+                src={formatImageUrl(p.imageUrl)}
+                alt={p.caption || '孩子上課的照片'}
+                loading="lazy"
+                className="w-full aspect-[3/4] object-cover rounded-3xl shadow-md border-4 border-white/80"
+              />
+            ))}
+          </div>
+        )}
+        {lineMsgs.length > 0 && (
+          <div className="space-y-3">
+            {lineMsgs.map((p, i) => (
+              <img
+                key={i}
+                src={formatImageUrl(p.imageUrl)}
+                alt={p.caption || '家長在 LINE 的回饋'}
+                loading="lazy"
+                className="w-full h-auto rounded-3xl shadow-md border-4 border-white/80"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -205,6 +205,8 @@ export interface SiteContent {
     classPhotosTitle: string;
     classPhotos: KidsPhoto[];
     mapButtonText: string;
+    feedbackPhotos: KidsPhoto[];
+    feedbackLines: KidsPhoto[];
     /** 報名流程 + 各產品頁入口. */
     enrollBadge: string;
     enrollTitle: string;
@@ -446,6 +448,15 @@ export const defaultSiteContent: SiteContent = {
       { imageUrl: '/assets/kids/think.jpg', caption: '動動腦' },
     ],
     mapButtonText: '看完整學習地圖 ↓',
+    feedbackPhotos: [
+      { imageUrl: '/assets/kids/fb-coin-table.jpg', caption: '' },
+      { imageUrl: '/assets/kids/fb-kids-piggy.jpg', caption: '' },
+    ],
+    feedbackLines: [
+      { imageUrl: '/assets/kids/line-1.jpg', caption: '' },
+      { imageUrl: '/assets/kids/line-2.jpg', caption: '' },
+      { imageUrl: '/assets/kids/line-3.jpg', caption: '' },
+    ],
     enrollBadge: '報名流程',
     enrollTitle: '報名只要 4 個步驟',
     enrollSteps: [

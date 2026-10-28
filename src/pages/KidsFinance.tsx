@@ -3,7 +3,7 @@ import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import ParentFeedbackSection from '../components/ParentFeedbackSection';
-import { AudienceSection, PhotoStrip } from '../components/SignupInfoSections';
+import { AudienceSection, FeedbackVisuals, PhotoStrip } from '../components/SignupInfoSections';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor } from '../../lib/siteContent';
@@ -193,6 +193,8 @@ export default function KidsFinance() {
         subtitle={page.storiesSubtitle}
         bgColor={page.bgColor}
       />
+
+      <FeedbackVisuals page={page} />
 
       {/* 兒童理財學習地圖：4 個系列 × 3 個年齡層 */}
       {page.learningMap.rows.length > 0 && (

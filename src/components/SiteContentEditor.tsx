@@ -766,6 +766,59 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
               <TextField label="照片說明（短短幾個字）" value={item.caption} onChange={(v) => update((d) => { d.kidsPage.classPhotos[idx].caption = v; })} />
             </div>
           ))}
+          <p className="text-xs text-slate-400">家長回饋下方：左邊放照片（並排），右邊放 LINE 訊息截圖。截圖請先遮住別人的姓名</p>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-800">家長回饋下方的照片</span>
+            <AddButton onClick={() => update((d) => { d.kidsPage.feedbackPhotos.push({ imageUrl: '', caption: '' }); })}>新增一張</AddButton>
+          </div>
+          {kidsPage.feedbackPhotos.map((item, idx) => (
+            <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">#{idx + 1}</span>
+                <div className="flex items-center gap-1">
+                  <OrderButtons
+                    index={idx}
+                    count={kidsPage.feedbackPhotos.length}
+                    onMove={(to) => update((d) => { const [m] = d.kidsPage.feedbackPhotos.splice(idx, 1); d.kidsPage.feedbackPhotos.splice(to, 0, m); })}
+                  />
+                  <RemoveButton onClick={() => update((d) => { d.kidsPage.feedbackPhotos.splice(idx, 1); })} />
+                </div>
+              </div>
+              <ImageUploadField
+                value={item.imageUrl}
+                onChange={(url) => update((d) => { d.kidsPage.feedbackPhotos[idx].imageUrl = url; })}
+                placeholder="按右邊「上傳圖片」，或貼上圖片網址"
+                onError={(msg) => onToast(msg, 'error')}
+                onUnauthorized={onUnauthorized}
+              />
+            </div>
+          ))}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-800">家長回饋下方的 LINE 訊息截圖</span>
+            <AddButton onClick={() => update((d) => { d.kidsPage.feedbackLines.push({ imageUrl: '', caption: '' }); })}>新增一張</AddButton>
+          </div>
+          {kidsPage.feedbackLines.map((item, idx) => (
+            <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">#{idx + 1}</span>
+                <div className="flex items-center gap-1">
+                  <OrderButtons
+                    index={idx}
+                    count={kidsPage.feedbackLines.length}
+                    onMove={(to) => update((d) => { const [m] = d.kidsPage.feedbackLines.splice(idx, 1); d.kidsPage.feedbackLines.splice(to, 0, m); })}
+                  />
+                  <RemoveButton onClick={() => update((d) => { d.kidsPage.feedbackLines.splice(idx, 1); })} />
+                </div>
+              </div>
+              <ImageUploadField
+                value={item.imageUrl}
+                onChange={(url) => update((d) => { d.kidsPage.feedbackLines[idx].imageUrl = url; })}
+                placeholder="按右邊「上傳圖片」，或貼上圖片網址"
+                onError={(msg) => onToast(msg, 'error')}
+                onUnauthorized={onUnauthorized}
+              />
+            </div>
+          ))}
           <TextField label="學習地圖展開按鈕文字" value={kidsPage.mapButtonText} onChange={(v) => update((d) => { d.kidsPage.mapButtonText = v; })} />
         </div>
 
