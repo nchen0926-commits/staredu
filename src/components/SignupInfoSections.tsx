@@ -133,14 +133,14 @@ export function FeedbackVisuals({ page }: { page: KidsPage }) {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 items-center">
         {photos.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className={`grid gap-3 sm:gap-4 ${photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {photos.map((p, i) => (
               <img
                 key={i}
                 src={formatImageUrl(p.imageUrl)}
                 alt={p.caption || '孩子上課的照片'}
                 loading="lazy"
-                className="w-full aspect-[3/4] object-cover rounded-3xl shadow-md border-4 border-white/80"
+                className={`w-full object-cover rounded-3xl shadow-md border-4 border-white/80 ${photos.length === 1 ? 'aspect-[4/3]' : 'aspect-[3/4]'}`}
               />
             ))}
           </div>

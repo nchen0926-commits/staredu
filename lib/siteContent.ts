@@ -450,7 +450,6 @@ export const defaultSiteContent: SiteContent = {
     mapButtonText: '看完整學習地圖 ↓',
     feedbackPhotos: [
       { imageUrl: '/assets/kids/fb-coin-table.jpg', caption: '' },
-      { imageUrl: '/assets/kids/fb-kids-piggy.jpg', caption: '' },
     ],
     feedbackLines: [
       { imageUrl: '/assets/kids/line-1.jpg', caption: '' },
