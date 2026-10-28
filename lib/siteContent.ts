@@ -441,7 +441,6 @@ export const defaultSiteContent: SiteContent = {
     classPhotosTitle: '真實上課實況',
     classPhotos: [
       { imageUrl: '/assets/kids/live-meet.jpg', caption: '22 個家庭，一起上線' },
-      { imageUrl: '/assets/kids/offline-play.jpg', caption: '動手玩' },
       { imageUrl: '/assets/kids/story.jpg', caption: '聽故事' },
       { imageUrl: '/assets/kids/offline-class.jpg', caption: '實體課現場' },
       { imageUrl: '/assets/kids/think.jpg', caption: '動動腦' },

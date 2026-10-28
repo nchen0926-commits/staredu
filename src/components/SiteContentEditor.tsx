@@ -715,7 +715,7 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4">
           <div>
             <span className="text-sm font-bold text-slate-800">照片</span>
-            <p className="text-xs text-slate-400 mt-0.5">開頭大圖、老師照片、「真實上課實況」相簿（第一張會放最寬）</p>
+            <p className="text-xs text-slate-400 mt-0.5">開頭大圖、老師照片，以及穿插在頁面各處的照片。第 1 張放最寬，第 2、3 張並排，第 4 張單獨一張</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="開頭大圖">

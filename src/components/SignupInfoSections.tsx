@@ -61,29 +61,26 @@ export function AudienceSection({ page }: { page: KidsPage }) {
   );
 }
 
-/** 真實上課實況相簿：第一張最寬，其餘排成方格 */
-export function ClassPhotos({ page }: { page: KidsPage }) {
-  const onBg = readableTextColor(page.bgColor);
-  const photos = page.classPhotos.filter((p) => p.imageUrl);
+/** 穿插在各區塊之間的照片：1 張置中寬圖、2 張並排。照片來自「照片相簿」，用編號挑。 */
+export function PhotoStrip({ page, ids }: { page: KidsPage; ids: number[] }) {
+  const photos = ids.map((i) => page.classPhotos[i]).filter((p) => p && p.imageUrl);
   if (photos.length === 0) return null;
-  const [first, ...rest] = photos;
+  const single = photos.length === 1;
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      {page.classPhotosTitle && (
-        <h2 className="text-3xl sm:text-4xl font-black text-center" style={{ color: onBg }}>{page.classPhotosTitle}</h2>
-      )}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <figure className="col-span-2 md:col-span-4 relative rounded-3xl overflow-hidden shadow-md bg-white">
-          <img src={formatImageUrl(first.imageUrl)} alt={first.caption} loading="lazy" className="w-full aspect-[16/9] md:aspect-[21/9] object-cover object-top" />
-          {first.caption && (
-            <figcaption className="absolute left-3 bottom-3 px-4 py-1.5 rounded-full bg-black/60 text-white text-base sm:text-lg font-bold">{first.caption}</figcaption>
-          )}
-        </figure>
-        {rest.map((p, i) => (
-          <figure key={i} className="relative rounded-3xl overflow-hidden shadow-md bg-white">
-            <img src={formatImageUrl(p.imageUrl)} alt={p.caption} loading="lazy" className="w-full aspect-square object-cover" />
+    <div className={`${single ? 'max-w-3xl' : 'max-w-4xl'} mx-auto px-4 sm:px-6 lg:px-8`}>
+      <div className={`grid gap-3 sm:gap-4 ${single ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        {photos.map((p, i) => (
+          <figure key={i} className="relative rounded-3xl overflow-hidden shadow-md border-4 border-white/80 bg-white">
+            <img
+              src={formatImageUrl(p.imageUrl)}
+              alt={p.caption}
+              loading="lazy"
+              className={`w-full object-cover ${single ? 'aspect-[16/9] object-top' : 'aspect-square'}`}
+            />
             {p.caption && (
-              <figcaption className="absolute left-2 bottom-2 px-3 py-1 rounded-full bg-black/60 text-white text-base font-bold">{p.caption}</figcaption>
+              <figcaption className="absolute left-2 bottom-2 px-3 py-1 rounded-full bg-black/60 text-white text-base sm:text-lg font-bold">
+                {p.caption}
+              </figcaption>
             )}
           </figure>
         ))}

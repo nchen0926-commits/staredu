@@ -4,7 +4,7 @@ import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor, type TestimonialItem } from '../../lib/siteContent';
 
-const LIMIT = 4;
+const LIMIT = 3;
 
 interface ParentFeedbackSectionProps {
   title: string;

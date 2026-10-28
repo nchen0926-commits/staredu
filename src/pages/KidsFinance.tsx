@@ -3,7 +3,7 @@ import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import ParentFeedbackSection from '../components/ParentFeedbackSection';
-import { AudienceSection, ClassPhotos, EnrollSection } from '../components/SignupInfoSections';
+import { AudienceSection, PhotoStrip, EnrollSection } from '../components/SignupInfoSections';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor } from '../../lib/siteContent';
@@ -79,6 +79,8 @@ export default function KidsFinance() {
       {/* 適合哪類爸媽 */}
       <AudienceSection page={page} />
 
+      <PhotoStrip page={page} ids={[1, 2]} />
+
       {/* 三大收穫 */}
       {page.gains.length > 0 && (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,13 +102,18 @@ export default function KidsFinance() {
                     {item.icon}
                   </div>
                   <h3 className="text-3xl font-black text-slate-800">{item.title}</h3>
-                  <p className="text-lg text-slate-700 leading-relaxed text-left">{item.description}</p>
+                  <details className="group text-left">
+                    <summary className="list-none cursor-pointer text-center text-lg font-bold text-blue-700 [&::-webkit-details-marker]:hidden group-open:hidden">看說明 ↓</summary>
+                    <p className="text-lg text-slate-700 leading-relaxed">{item.description}</p>
+                  </details>
                 </div>
               ))}
             </div>
           </div>
         </div>
       )}
+
+      <PhotoStrip page={page} ids={[0]} />
 
       {/* 課程特色（四大塊） */}
       {page.highlights.length > 0 && (
@@ -119,16 +126,19 @@ export default function KidsFinance() {
             {page.highlights.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-[2rem] p-7 sm:p-9 flex items-center justify-between gap-4 min-h-[13rem] overflow-hidden"
+                className="bg-white rounded-[2rem] p-7 sm:p-9 flex items-center justify-between gap-4 min-h-[9rem] overflow-hidden"
                 style={{ border: `10px solid ${item.borderColor}` }}
               >
                 <div className="space-y-3 min-w-0">
                   <h3 className="text-3xl sm:text-4xl font-black text-slate-800">{item.title}</h3>
-                  <ul className="space-y-1.5 text-slate-700 text-lg sm:text-xl leading-relaxed list-disc pl-5">
+                  <details className="group">
+                    <summary className="list-none cursor-pointer text-lg font-bold text-blue-700 [&::-webkit-details-marker]:hidden group-open:hidden">看內容 ↓</summary>
+                    <ul className="space-y-1.5 text-slate-700 text-lg sm:text-xl leading-relaxed list-disc pl-5">
                     {bulletLines(item.description).map((line, i) => (
-                      <li key={i}>{line}</li>
-                    ))}
+                        <li key={i}>{line}</li>
+                      ))}
                   </ul>
+                  </details>
                 </div>
                 {item.imageUrl ? (
                   <img
@@ -150,8 +160,7 @@ export default function KidsFinance() {
         </div>
       )}
 
-      {/* 真實上課實況 */}
-      <ClassPhotos page={page} />
+      <PhotoStrip page={page} ids={[3]} />
 
       {/* 中段報名按鈕 */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
