@@ -3,7 +3,7 @@ import { Course } from '../types';
 import CourseCard from '../components/CourseCard';
 import Seo from '../components/Seo';
 import ParentFeedbackSection from '../components/ParentFeedbackSection';
-import { AudienceSection, PhotoStrip, EnrollSection } from '../components/SignupInfoSections';
+import { AudienceSection, PhotoStrip } from '../components/SignupInfoSections';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import { readableTextColor } from '../../lib/siteContent';
@@ -131,14 +131,11 @@ export default function KidsFinance() {
               >
                 <div className="space-y-3 min-w-0">
                   <h3 className="text-3xl sm:text-4xl font-black text-slate-800">{item.title}</h3>
-                  <details className="group">
-                    <summary className="list-none cursor-pointer text-lg font-bold text-blue-700 [&::-webkit-details-marker]:hidden group-open:hidden">看內容 ↓</summary>
-                    <ul className="space-y-1.5 text-slate-700 text-lg sm:text-xl leading-relaxed list-disc pl-5">
+                  <ul className="space-y-1.5 text-slate-700 text-lg sm:text-xl leading-relaxed list-disc pl-5">
                     {bulletLines(item.description).map((line, i) => (
-                        <li key={i}>{line}</li>
-                      ))}
+                      <li key={i}>{line}</li>
+                    ))}
                   </ul>
-                  </details>
                 </div>
                 {item.imageUrl ? (
                   <img
@@ -196,9 +193,6 @@ export default function KidsFinance() {
         subtitle={page.storiesSubtitle}
         bgColor={page.bgColor}
       />
-
-      {/* 報名流程、官方 LINE、課程說明 */}
-      <EnrollSection page={page} />
 
       {/* 兒童理財學習地圖：4 個系列 × 3 個年齡層 */}
       {page.learningMap.rows.length > 0 && (

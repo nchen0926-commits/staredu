@@ -769,51 +769,6 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
           <TextField label="學習地圖展開按鈕文字" value={kidsPage.mapButtonText} onChange={(v) => update((d) => { d.kidsPage.mapButtonText = v; })} />
         </div>
 
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-          <div>
-            <span className="text-sm font-bold text-slate-800">報名流程</span>
-            <p className="text-xs text-slate-400 mt-0.5">放在家長回饋下方</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField label="小標籤" value={kidsPage.enrollBadge} onChange={(v) => update((d) => { d.kidsPage.enrollBadge = v; })} />
-            <TextField label="標題" value={kidsPage.enrollTitle} onChange={(v) => update((d) => { d.kidsPage.enrollTitle = v; })} />
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-800">流程步驟</span>
-              <AddButton onClick={() => update((d) => { d.kidsPage.enrollSteps.push({ title: '', description: '' }); })}>新增步驟</AddButton>
-            </div>
-            {kidsPage.enrollSteps.map((item, idx) => (
-              <div key={idx} className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">步驟 {idx + 1}</span>
-                  <div className="flex items-center gap-1">
-                    <OrderButtons
-                      index={idx}
-                      count={kidsPage.enrollSteps.length}
-                      onMove={(to) => update((d) => { const [m] = d.kidsPage.enrollSteps.splice(idx, 1); d.kidsPage.enrollSteps.splice(to, 0, m); })}
-                    />
-                    <RemoveButton onClick={() => update((d) => { d.kidsPage.enrollSteps.splice(idx, 1); })} />
-                  </div>
-                </div>
-                <TextField label="標題" value={item.title} onChange={(v) => update((d) => { d.kidsPage.enrollSteps[idx].title = v; })} />
-                <TextField label="說明" value={item.description} onChange={(v) => update((d) => { d.kidsPage.enrollSteps[idx].description = v; })} />
-              </div>
-            ))}
-          </div>
-          <TextField label="最後一步的按鈕文字" value={kidsPage.enrollButtonText} onChange={(v) => update((d) => { d.kidsPage.enrollButtonText = v; })} />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField label="開頭按鈕文字" value={kidsPage.heroCtaText} onChange={(v) => update((d) => { d.kidsPage.heroCtaText = v; })} />
-          <TextField label="認識我是誰（開頭下方一句）" value={kidsPage.introText} onChange={(v) => update((d) => { d.kidsPage.introText = v; })} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField label="創辦人一句話（放在結尾前，留空就不顯示）" value={kidsPage.founderQuote} onChange={(v) => update((d) => { d.kidsPage.founderQuote = v; })} />
-          <TextField label="署名" value={kidsPage.founderName} onChange={(v) => update((d) => { d.kidsPage.founderName = v; })} />
-          <TextField label="連結文字（留空就不顯示）" value={kidsPage.founderLinkText} onChange={(v) => update((d) => { d.kidsPage.founderLinkText = v; })} />
-          <TextField label="連結網址" value={kidsPage.founderLinkUrl} onChange={(v) => update((d) => { d.kidsPage.founderLinkUrl = v; })} />
-        </div>
         <TextField label="報名按鈕文字（中段、結尾、手機下方固定按鈕）" value={kidsPage.ctaText} onChange={(v) => update((d) => { d.kidsPage.ctaText = v; })} />
       </Card>
 
