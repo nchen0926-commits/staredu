@@ -130,11 +130,35 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
     refreshActive();
   };
 
+  // The link (<a>) the cursor / selection is currently inside, if any (e.g. one of the CTA buttons).
+  const linkAtSelection = (): HTMLAnchorElement | null => {
+    const el = editorRef.current;
+    const sel = window.getSelection();
+    if (!el || !sel) return null;
+    el.focus();
+    restoreSelection();
+    const node = sel.anchorNode;
+    const start = node && node.nodeType === Node.TEXT_NODE ? node.parentElement : (node as Element | null);
+    const found = start?.closest('a') ?? null;
+    return found && el.contains(found) ? (found as HTMLAnchorElement) : null;
+  };
+
   const addLink = () => {
-    const url = window.prompt('請貼上連結網址（要以 https:// 開頭）')?.trim();
+    // When the cursor is already inside a link or button, change that link's address instead of wrapping
+    // it in a second link (which would break the button's look).
+    const existing = linkAtSelection();
+    const url = window.prompt(
+      existing ? '這裡已經有連結，請貼上新的網址（要以 https:// 開頭）' : '請貼上連結網址（要以 https:// 開頭）',
+      existing?.getAttribute('href') ?? ''
+    )?.trim();
     if (!url) return;
     if (!/^(https?:\/\/|mailto:|tel:)/i.test(url)) {
       onError('連結要以 https:// 開頭');
+      return;
+    }
+    if (existing) {
+      existing.setAttribute('href', url);
+      emit();
       return;
     }
     editorRef.current?.focus();
@@ -144,6 +168,28 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
     } else {
       run('createLink', url);
     }
+  };
+
+  // Font size: the browser can only make <font size="1-7">, so mark the text with size 7 and turn those into
+  // real, sanitizer-friendly <span style="font-size: ...em"> afterwards.
+  const applyFontSize = (size: string) => {
+    const el = editorRef.current;
+    if (!el || !size) return;
+    el.focus();
+    restoreSelection();
+    if (window.getSelection()?.isCollapsed) {
+      onError('請先用滑鼠選取要改大小的文字');
+      return;
+    }
+    document.execCommand('fontSize', false, '7');
+    el.querySelectorAll('font[size="7"]').forEach((f) => {
+      const span = document.createElement('span');
+      span.style.fontSize = size;
+      while (f.firstChild) span.appendChild(f.firstChild);
+      f.replaceWith(span);
+    });
+    emit();
+    refreshActive();
   };
 
   const selectImage = (img: HTMLImageElement | null) => {
@@ -231,6 +277,20 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
           <option value="h2">大標題</option>
           <option value="h3">小標題</option>
           <option value="h4">更小的標題</option>
+        </select>
+        <select
+          value=""
+          onChange={(e) => applyFontSize(e.target.value)}
+          className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-700"
+          aria-label="文字大小"
+          title="先選取文字，再選大小"
+        >
+          <option value="">文字大小</option>
+          <option value="0.8em">小</option>
+          <option value="0.9em">稍小</option>
+          <option value="1em">一般</option>
+          <option value="1.25em">大</option>
+          <option value="1.5em">特大</option>
         </select>
         <Divider />
         <Btn title="粗體" active={active.bold} onClick={() => run('bold')}><Bold className="w-4 h-4" /></Btn>
