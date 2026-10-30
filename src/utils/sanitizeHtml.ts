@@ -17,7 +17,7 @@ const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'style', 'color', 'target',
 // index.css, so a visual change is made in one place. Any other class name is dropped.
 const ALLOWED_CLASSES = new Set([
   'toc-box', 'toc-title', 'summary-box', 'cta-box', 'cta-title', 'cta-btns', 'cta-btn',
-  'cta-line', 'cta-fb', 'cta-group', 'cta-ig', 'note-red',
+  'cta-line', 'cta-fb', 'cta-group', 'cta-ig', 'note-red', 'subscribe-box',
 ]);
 // Heading ids exist only so the table of contents can jump to them; the fixed prefix stops an id from
 // colliding with page elements or browser properties.

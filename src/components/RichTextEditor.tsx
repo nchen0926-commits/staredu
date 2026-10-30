@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ClipboardEvent, type DragEvent, type ReactNode } from 'react';
 import {
   Bold, Italic, Underline, Strikethrough, List, ListOrdered, AlignLeft, AlignCenter, AlignRight,
-  Quote, Link2, ImagePlus, Minus, Undo2, Redo2, Eraser, Highlighter, Palette, Loader2, Trash2,
+  Quote, Link2, ImagePlus, Minus, Undo2, Redo2, Eraser, Highlighter, Palette, Loader2, Trash2, Mail,
 } from 'lucide-react';
 import { isHtml, sanitizeArticleHtml, textToHtml } from '../utils/sanitizeHtml';
 import { uploadImage, UploadError } from '../utils/uploadImage';
@@ -168,6 +168,13 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
     } else {
       run('createLink', url);
     }
+  };
+
+  const insertSubscribeBox = () => {
+    run(
+      'insertHTML',
+      '<div class="subscribe-box"><p class="cta-title">想收到亮亮老師的新文章嗎？</p><p>留下 Email，每週一封，把新文章送到你的信箱。</p></div><p><br></p>'
+    );
   };
 
   // Font size: the browser can only make <font size="1-7">, so mark the text with size 7 and turn those into
@@ -359,6 +366,7 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
         >
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
         </Btn>
+        <Btn title="插入訂閱電子報表單（讓讀者在文章裡輸入 Email）" onClick={insertSubscribeBox}><Mail className="w-4 h-4" /></Btn>
         <Btn title="清除格式" onClick={() => run('removeFormat')}><Eraser className="w-4 h-4" /></Btn>
         <input
           ref={fileInput}
