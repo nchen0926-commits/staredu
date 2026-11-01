@@ -173,7 +173,7 @@ export default function RichTextEditor({ initialHtml, onChange, onError, onUnaut
   const insertSubscribeBox = () => {
     run(
       'insertHTML',
-      '<div class="subscribe-box"><p class="cta-title">想收到亮亮老師的新文章嗎？</p><p>留下 Email，每週一封，把新文章送到你的信箱。</p></div><p><br></p>'
+      '<div class="subscribe-box"><p class="cta-title">想免費收到新文章嗎？</p><p>留下 Email，新文章會寄到你的信箱。</p></div><p><br></p>'
     );
   };
 
