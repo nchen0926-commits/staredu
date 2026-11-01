@@ -135,7 +135,7 @@ export function createApiRouter(): express.Router {
   const BOT_AGENT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless/i;
 
   // Returns the cleaned article, or a message describing what is wrong.
-  const parseArticle = (input: any, categories: Set<string>): db.ArticleInput | string => {
+  const parseArticle = (input: any, categories: Map<string, Set<string>>): db.ArticleInput | string => {
     const title = String(input?.title ?? "").trim().slice(0, 200);
     if (!title) return "請填寫文章標題";
 
@@ -145,6 +145,9 @@ export function createApiRouter(): express.Router {
     }
 
     const parsed = new Date(input?.publishedAt);
+    const category = categories.has(String(input?.category ?? "")) ? String(input.category) : "";
+    const subRaw = String(input?.subcategory ?? "");
+    const subcategory = category && categories.get(category)?.has(subRaw) ? subRaw : "";
     return {
       title,
       slug,
@@ -153,7 +156,8 @@ export function createApiRouter(): express.Router {
       author: String(input?.author ?? "").trim().slice(0, 60),
       coverImage: safeUrl(String(input?.coverImage ?? "")),
       body: String(input?.body ?? "").slice(0, 200000),
-      category: categories.has(String(input?.category ?? "")) ? String(input.category) : "",
+      category,
+      subcategory,
       published: Boolean(input?.published),
       publishedAt: Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString(),
     };
@@ -163,8 +167,12 @@ export function createApiRouter(): express.Router {
   // ?category= filters to one of the categories managed in 網站內容 (used by 大人的理財／理財文章 pages).
   router.get("/articles", async (req, res) => {
     try {
-      const { category } = req.query;
-      const articles = await db.listArticles(true, typeof category === "string" ? category : undefined);
+      const { category, subcategory } = req.query;
+      const articles = await db.listArticles(
+        true,
+        typeof category === "string" ? category : undefined,
+        typeof subcategory === "string" ? subcategory : undefined
+      );
       // Reading counts are always recorded; they are only sent to visitors when the owner switches them on.
       const showStats = resolveSiteContent(await db.getSiteContent()).articlesPage.showStats;
       res.json(articles.map(({ body, viewCount, ...rest }) => (showStats ? { ...rest, viewCount } : rest)));

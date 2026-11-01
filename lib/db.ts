@@ -264,6 +264,7 @@ export interface Article {
   coverImage: string;
   body: string;
   category: string;
+  subcategory: string;
   published: boolean;
   publishedAt: string;
   updatedAt: string;
@@ -282,6 +283,7 @@ type ArticleRow = {
   cover_image: string;
   body: string;
   category?: string | null;
+  subcategory?: string | null;
   published: boolean;
   published_at: string;
   updated_at?: string | null;
@@ -299,6 +301,7 @@ function rowToArticle(row: ArticleRow): Article {
     coverImage: row.cover_image,
     body: row.body,
     category: row.category ?? "",
+    subcategory: row.subcategory ?? "",
     published: row.published,
     publishedAt: row.published_at,
     updatedAt: row.updated_at ?? row.published_at,
@@ -324,11 +327,12 @@ function articlesError(message: string): Error {
   return new Error(message);
 }
 
-export async function listArticles(onlyLive: boolean, category?: string): Promise<Article[]> {
+export async function listArticles(onlyLive: boolean, category?: string, subcategory?: string): Promise<Article[]> {
   const client = getClient();
   let query = client.from("articles").select("*").order("published_at", { ascending: false });
   if (onlyLive) query = query.eq("published", true).lte("published_at", new Date().toISOString());
   if (category) query = query.eq("category", category);
+  if (subcategory) query = query.eq("subcategory", subcategory);
   const { data, error } = await query;
   if (error) throw articlesError(error.message);
   return (data as ArticleRow[]).map(rowToArticle);
@@ -366,6 +370,8 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
       cover_image: input.coverImage,
       body: input.body,
       category: input.category,
+      // Only sent when used, so saving articles keeps working even before article_subcategory.sql has been run.
+      ...(input.subcategory ? { subcategory: input.subcategory } : {}),
       published: input.published,
       published_at: input.publishedAt,
     })
@@ -377,24 +383,28 @@ export async function createArticle(input: ArticleInput): Promise<Article> {
 
 export async function updateArticle(id: string, input: ArticleInput): Promise<Article | null> {
   const client = getClient();
-  const { data, error } = await client
-    .from("articles")
-    .update({
-      slug: input.slug || null,
-      title: input.title,
-      summary: input.summary,
-      seo_description: input.seoDescription,
-      author: input.author,
-      cover_image: input.coverImage,
-      body: input.body,
-      category: input.category,
-      published: input.published,
-      published_at: input.publishedAt,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select("*")
-    .maybeSingle();
+  const fields = {
+    slug: input.slug || null,
+    title: input.title,
+    summary: input.summary,
+    seo_description: input.seoDescription,
+    author: input.author,
+    cover_image: input.coverImage,
+    body: input.body,
+    category: input.category,
+    published: input.published,
+    published_at: input.publishedAt,
+    updated_at: new Date().toISOString(),
+  };
+  const run = (payload: Record<string, unknown>) =>
+    client.from("articles").update(payload).eq("id", id).select("*").maybeSingle();
+
+  // Always written so a sub-category can be cleared; if the column isn't there yet (article_subcategory.sql not
+  // run) and nothing is being set, save without it instead of failing.
+  let { data, error } = await run({ ...fields, subcategory: input.subcategory || "" });
+  if (error && !input.subcategory && /subcategory/i.test(error.message)) {
+    ({ data, error } = await run(fields));
+  }
   if (error) throw articlesError(error.message);
   return data ? rowToArticle(data as ArticleRow) : null;
 }

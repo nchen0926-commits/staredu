@@ -23,6 +23,7 @@ interface ArticleForm {
   coverImage: string;
   body: string;
   category: string;
+  subcategory: string;
   published: boolean;
   publishedLocal: string; // Taipei time, "YYYY-MM-DDTHH:mm"
 }
@@ -58,6 +59,7 @@ const toForm = (article: Article): ArticleForm => ({
   coverImage: article.coverImage,
   body: article.body,
   category: article.category,
+  subcategory: article.subcategory ?? '',
   published: article.published,
   publishedLocal: toTaipeiLocal(new Date(article.publishedAt)),
 });
@@ -65,6 +67,10 @@ const toForm = (article: Article): ArticleForm => ({
 export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesManagerProps) {
   const { content: siteContent } = useSiteContent();
   const categoryNames = siteContent.articlesPage.categories.map((c) => c.name).filter(Boolean);
+  const subcategoryOptions = (() => {
+    const names = siteContent.articlesPage.categories.find((c) => c.name === form.category)?.subcategories.map((s) => s.name).filter(Boolean) ?? [];
+    return form.subcategory && !names.includes(form.subcategory) ? [...names, form.subcategory] : names;
+  })();
   const [articles, setArticles] = useState<Article[] | null>(null);
   const [loadError, setLoadError] = useState('');
   const [form, setForm] = useState<ArticleForm | null>(null);
@@ -103,6 +109,7 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
       coverImage: '',
       body: '',
       category: '',
+      subcategory: '',
       published: false,
       publishedLocal: toTaipeiLocal(new Date()),
     });
@@ -201,11 +208,11 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            分類<span className="ml-2 font-normal text-slate-400">分類可以在「網站內容 → 文章分類」自己新增、修改</span>
+            分類<span className="ml-2 font-normal text-slate-400">分類和次分類可以在「網站內容 → 文章分類」自己新增、修改</span>
           </label>
           <select
             value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            onChange={(e) => setForm({ ...form, category: e.target.value, subcategory: '' })}
             className={inputClass}
           >
             <option value="">未分類</option>
@@ -214,6 +221,24 @@ export default function ArticlesManager({ onToast, onUnauthorized }: ArticlesMan
             ))}
           </select>
         </div>
+
+        {subcategoryOptions.length > 0 && (
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+              次分類<span className="ml-2 font-normal text-slate-400">先選上面的分類，這裡就會出現它底下的次分類（選填）</span>
+            </label>
+            <select
+              value={form.subcategory}
+              onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
+              className={inputClass}
+            >
+              <option value="">不指定</option>
+              {subcategoryOptions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">

@@ -9,11 +9,13 @@ import { useSiteContent } from '../hooks/useSiteContent';
 
 export default function Articles() {
   const { content } = useSiteContent();
-  const CATEGORIES = content.articlesPage.categories.map((c) => c.name).filter(Boolean);
+  const CATEGORIES = content.articlesPage.categories.filter((c) => c.name);
   const showStats = content.articlesPage.showStats;
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
+  const subNames = CATEGORIES.find((c) => c.name === category)?.subcategories.map((s) => s.name).filter(Boolean) ?? [];
 
   useEffect(() => {
     fetch('/api/articles')
@@ -23,7 +25,9 @@ export default function Articles() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = category ? articles.filter((a) => a.category === category) : articles;
+  const filtered = articles.filter(
+    (a) => (!category || a.category === category) && (!subcategory || a.subcategory === subcategory)
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 space-y-10">
@@ -39,7 +43,7 @@ export default function Articles() {
 
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => setCategory('')}
+          onClick={() => { setCategory(''); setSubcategory(''); }}
           className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             category === '' ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
           }`}
@@ -48,16 +52,32 @@ export default function Articles() {
         </button>
         {CATEGORIES.map((c) => (
           <button
-            key={c}
-            onClick={() => setCategory(c)}
+            key={c.name}
+            onClick={() => { setCategory(c.name); setSubcategory(''); }}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-              category === c ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+              category === c.name ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
             }`}
           >
-            {c}
+            {c.name}
           </button>
         ))}
       </div>
+
+      {subNames.length > 0 && (
+        <div className="flex flex-wrap gap-2 -mt-6">
+          {['', ...subNames].map((name) => (
+            <button
+              key={name || 'all'}
+              onClick={() => setSubcategory(name)}
+              className={`px-3.5 py-1.5 rounded-full text-sm font-bold transition-all ${
+                subcategory === name ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+              }`}
+            >
+              {name || `${category}・全部`}
+            </button>
+          ))}
+        </div>
+      )}
 
       {!loading && filtered.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-3xl border border-slate-200/60 p-8">
@@ -85,7 +105,11 @@ export default function Articles() {
               )}
               <div className="p-5 sm:p-6 space-y-2">
                 <p className="text-xs font-bold text-amber-600">
-                  {article.category && <span className="mr-2 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700">{article.category}</span>}
+                  {article.category && (
+                    <span className="mr-2 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700">
+                      {article.category}{article.subcategory ? `・${article.subcategory}` : ''}
+                    </span>
+                  )}
                   {formatDate(article.publishedAt)}
                   {showStats && <span className="ml-2 text-slate-400">👁 {(article.viewCount ?? 0).toLocaleString()}</span>}
                 </p>

@@ -20,12 +20,16 @@ import { handleMcp } from "./aiMcp";
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 /** The categories the owner manages in 後台 → 網站內容 → 文章分類. */
-export async function loadCategories(): Promise<Set<string>> {
+export async function loadCategories(): Promise<Map<string, Set<string>>> {
   try {
     const content = resolveSiteContent(await db.getSiteContent());
-    return new Set(content.articlesPage.categories.map((c) => c.name).filter(Boolean));
+    return new Map(
+      content.articlesPage.categories
+        .filter((c) => c.name)
+        .map((c) => [c.name, new Set(c.subcategories.map((s) => s.name).filter(Boolean))] as [string, Set<string>])
+    );
   } catch {
-    return new Set();
+    return new Map();
   }
 }
 
@@ -87,7 +91,7 @@ const pick = (body: any, ...names: string[]) => {
 
 type Parsed = { input: db.ArticleInput } | { error: string };
 
-function parseAiArticle(body: any, categories: Set<string>): Parsed {
+function parseAiArticle(body: any, categories: Map<string, Set<string>>): Parsed {
   if (!body || typeof body !== "object" || Array.isArray(body)) return { error: "請以 JSON 物件送出文章資料" };
 
   const title = String(pick(body, "title") ?? "").trim();
@@ -109,7 +113,14 @@ function parseAiArticle(body: any, categories: Set<string>): Parsed {
 
   const category = String(pick(body, "category") ?? "").trim();
   if (category && !categories.has(category)) {
-    return { error: `category 只能是：${[...categories].join("、")}（或留空）` };
+    return { error: `category 只能是：${[...categories.keys()].join("、")}（或留空）` };
+  }
+  const subcategory = String(pick(body, "subcategory") ?? "").trim();
+  if (subcategory) {
+    const subs = categories.get(category);
+    if (!subs || !subs.has(subcategory)) {
+      return { error: `subcategory 必須是 ${category || "（先填 category）"} 底下的次分類：${[...(subs ?? [])].join("、") || "（沒有）"}（或留空）` };
+    }
   }
 
   const coverRaw = String(pick(body, "coverImage", "cover_image") ?? "").trim();
@@ -134,6 +145,7 @@ function parseAiArticle(body: any, categories: Set<string>): Parsed {
       coverImage,
       body: stripActiveContent(bodyHtml),
       category,
+      subcategory,
       published: status === "published",
       publishedAt,
     },

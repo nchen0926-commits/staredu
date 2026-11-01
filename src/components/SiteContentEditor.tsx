@@ -829,26 +829,47 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-bold text-slate-800">分類清單</span>
-            <AddButton onClick={() => update((d) => { d.articlesPage.categories.push({ name: '' }); })}>新增分類</AddButton>
+            <AddButton onClick={() => update((d) => { d.articlesPage.categories.push({ name: '', subcategories: [] }); })}>新增分類</AddButton>
           </div>
           {articlesPage.categories.map((item, idx) => (
-            <div key={idx} className="flex items-end gap-2">
-              <div className="flex-1">
-                <TextField label={`分類 ${idx + 1}`} value={item.name} onChange={(v) => update((d) => { d.articlesPage.categories[idx].name = v; })} />
+            <div key={idx} className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/60 space-y-3">
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <TextField label={`分類 ${idx + 1}`} value={item.name} onChange={(v) => update((d) => { d.articlesPage.categories[idx].name = v; })} />
+                </div>
+                <OrderButtons
+                  index={idx}
+                  count={articlesPage.categories.length}
+                  onMove={(to) => update((d) => { const [m] = d.articlesPage.categories.splice(idx, 1); d.articlesPage.categories.splice(to, 0, m); })}
+                />
+                <RemoveButton onClick={() => update((d) => { d.articlesPage.categories.splice(idx, 1); })} />
               </div>
-              <OrderButtons
-                index={idx}
-                count={articlesPage.categories.length}
-                onMove={(to) => update((d) => { const [m] = d.articlesPage.categories.splice(idx, 1); d.articlesPage.categories.splice(to, 0, m); })}
-              />
-              <RemoveButton onClick={() => update((d) => { d.articlesPage.categories.splice(idx, 1); })} />
+              <div className="pl-4 border-l-2 border-amber-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-600">「{item.name || '這個分類'}」底下的次分類（選填）</span>
+                  <AddButton onClick={() => update((d) => { d.articlesPage.categories[idx].subcategories.push({ name: '' }); })}>新增次分類</AddButton>
+                </div>
+                {item.subcategories.map((sub, si) => (
+                  <div key={si} className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <TextField label={`次分類 ${si + 1}`} value={sub.name} onChange={(v) => update((d) => { d.articlesPage.categories[idx].subcategories[si].name = v; })} />
+                    </div>
+                    <OrderButtons
+                      index={si}
+                      count={item.subcategories.length}
+                      onMove={(to) => update((d) => { const list = d.articlesPage.categories[idx].subcategories; const [m] = list.splice(si, 1); list.splice(to, 0, m); })}
+                    />
+                    <RemoveButton onClick={() => update((d) => { d.articlesPage.categories[idx].subcategories.splice(si, 1); })} />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
-          <p className="text-xs text-slate-400">改名或刪除分類後，原本在這個分類的文章會變成「未分類」顯示（文章還在），請到文章管理重新選分類。</p>
+          <p className="text-xs text-slate-400">改名或刪除分類、次分類後，原本的文章會顯示成沒有分類或沒有次分類（文章還在），請到文章管理重新選。</p>
         </div>
         <TextField
           label="「大人的理財」頁要顯示哪個分類的文章"
-          hint="填上面其中一個分類名稱；留空就顯示最新文章"
+          hint="填上面其中一個「主分類」名稱；留空就顯示最新文章"
           value={articlesPage.adultCategory}
           onChange={(v) => update((d) => { d.articlesPage.adultCategory = v; })}
         />

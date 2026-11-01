@@ -38,6 +38,7 @@ export interface Article {
   coverImage: string;
   body: string;
   category: string;
+  subcategory?: string;
   published: boolean;
   publishedAt: string;
   updatedAt: string;

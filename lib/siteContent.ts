@@ -139,6 +139,8 @@ export interface ServiceItem {
 /** One article category (the tab on 理財文章 and the dropdown when writing an article). */
 export interface ArticleCategory {
   name: string;
+  /** 次分類 shown under this category (optional). */
+  subcategories: { name: string }[];
 }
 
 export interface SiteContent {
@@ -537,13 +539,11 @@ export const defaultSiteContent: SiteContent = {
   },
   articlesPage: {
     categories: [
-      { name: '兒童財商入門' },
-      { name: '孩子的金錢觀' },
-      { name: '投資理財基本功' },
-      { name: '商業思維' },
+      { name: '兒童理財', subcategories: [{ name: '兒童財商入門' }, { name: '孩子的金錢觀' }, { name: '商業思維' }] },
+      { name: '大人理財', subcategories: [{ name: '投資理財基本功' }] },
     ],
     showStats: false,
-    adultCategory: '投資理財基本功',
+    adultCategory: '大人理財',
   },
   adultPage: {
     heroTitle: '錢賺了這麼多年，\n是時候真正搞懂它了。',
@@ -658,6 +658,7 @@ const MAX_BODY = 30000;
 /** Item shape for list fields that start out empty (so there is no default item to copy). */
 const EMPTY_LIST_TEMPLATES: Record<string, unknown> = {
   legalLinks: { label: '', url: '' },
+  subcategories: { name: '' },
   items: { imageUrl: '', avatarUrl: '', name: '', role: '', quote: '', activityName: '', date: '', segment: '' },
 };
 
