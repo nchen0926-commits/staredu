@@ -30,7 +30,7 @@ export default function ParentFeedbackSection({ title, subtitle, bgColor }: Pare
   const headingColor = readableTextColor(bgColor);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div id="feedback" className="scroll-mt-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="text-center space-y-2" style={{ color: headingColor }}>
         <h2 className="text-3xl sm:text-4xl font-black">{title}</h2>
         {subtitle && <p className="text-lg sm:text-xl opacity-80">{subtitle}</p>}
