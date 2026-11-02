@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { trackEvent } from '../utils/track';
 import { Mail } from 'lucide-react';
 
 /** "Leave your email" form shown inside an article (where the editor's 訂閱表單 block is placed). */
@@ -28,6 +29,7 @@ export default function SubscribeForm() {
         setStatus('idle');
         return;
       }
+      trackEvent('subscribe_article');
       setStatus('done');
     } catch {
       setError('送出時發生網路錯誤，請稍後再試');

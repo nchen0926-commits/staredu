@@ -42,6 +42,8 @@ export default function KidsFinance() {
             <p className="text-xl sm:text-2xl leading-relaxed opacity-85">{page.heroSubtitle}</p>
             <a
               href="#courses"
+              data-track="click_signup_cta"
+              data-track-label="hero"
               className="inline-flex items-center px-10 py-4 rounded-2xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
             >
               {page.heroCtaText}
@@ -163,6 +165,8 @@ export default function KidsFinance() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <a
           href="#courses"
+          data-track="click_signup_cta"
+          data-track-label="middle"
           className="inline-flex items-center px-10 py-4 rounded-2xl text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
         >
           {page.ctaText}
@@ -287,6 +291,8 @@ export default function KidsFinance() {
         )}
         <a
           href="#courses"
+          data-track="click_signup_cta"
+          data-track-label="end"
           className="inline-flex items-center gap-2 px-12 py-5 rounded-2xl text-xl font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-900/20 transition-all active:scale-95"
         >
           {page.ctaText}
@@ -296,6 +302,8 @@ export default function KidsFinance() {
       {/* 手機下方固定按鈕 */}
       <a
         href="#courses"
+        data-track="click_signup_cta"
+        data-track-label="sticky"
         className="md:hidden fixed bottom-3 left-4 right-4 z-40 text-center py-3.5 rounded-2xl text-lg font-bold text-white bg-blue-600 shadow-xl shadow-blue-900/30 active:scale-95"
       >
         {page.ctaText}

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { trackEvent } from '../utils/track';
 
 declare global {
   interface Window {
@@ -28,6 +29,24 @@ export default function Analytics() {
       page_location: window.location.href,
     });
   }, [location.pathname, location.search, location.hash]);
+
+  // Click measuring for the whole site: LINE links (nav, footer, pages, article buttons) and any element marked data-track.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (!target) return;
+      const marked = target.closest('[data-track]') as HTMLElement | null;
+      if (marked?.dataset.track) {
+        trackEvent(marked.dataset.track, { label: marked.dataset.trackLabel ?? '', link_text: (marked.textContent ?? '').trim().slice(0, 40) });
+      }
+      const link = target.closest('a[href]') as HTMLAnchorElement | null;
+      if (link && /^https?:\/\/(lin\.ee|line\.me|page\.line\.me)\//i.test(link.href)) {
+        trackEvent('click_line', { link_url: link.href, link_text: (link.textContent ?? '').trim().slice(0, 40) });
+      }
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, []);
 
   return null;
 }

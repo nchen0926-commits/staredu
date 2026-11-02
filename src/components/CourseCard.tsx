@@ -1,3 +1,4 @@
+import { trackEvent } from '../utils/track';
 import { useState } from 'react';
 import { Course } from '../types';
 import { formatImageUrl } from '../utils/imageUtils';
@@ -13,6 +14,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
   const handleEnroll = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    trackEvent('click_enroll', { course_name: course.title, course_id: course.id });
     if (course.paymentUrl && /^https?:\/\//i.test(course.paymentUrl)) {
       window.location.href = course.paymentUrl;
       return;
@@ -46,7 +48,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   return (
     <>
       <div 
-        onClick={() => setShowModal(true)}
+        onClick={() => { trackEvent('click_course', { course_name: course.title, course_id: course.id }); setShowModal(true); }}
         className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
       >
         {/* Image Container */}

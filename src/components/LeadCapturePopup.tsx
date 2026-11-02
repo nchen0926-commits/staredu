@@ -1,3 +1,4 @@
+import { trackEvent } from '../utils/track';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, CheckCircle2, Mail } from 'lucide-react';
@@ -74,6 +75,7 @@ export default function LeadCapturePopup() {
         return;
       }
       writeFlag(SUBMITTED_KEY, '1');
+      trackEvent('subscribe_popup');
       setStatus('done');
     } catch {
       setError('送出時發生網路錯誤，請稍後再試');
