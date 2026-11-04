@@ -75,6 +75,13 @@ export interface KidsPhoto {
   caption: string;
 }
 
+/** One block (學歷 / 經歷 / 專長 …) of the 老師介紹 card. Items are one per line. */
+export interface FounderSection {
+  label: string;
+  color: 'blue' | 'pink' | 'green' | 'orange';
+  items: string;
+}
+
 /** One step of the 報名流程 on 小管家兒童理財. */
 export interface KidsEnrollStep {
   title: string;
@@ -226,6 +233,11 @@ export interface SiteContent {
     founderName: string;
     founderLinkText: string;
     founderLinkUrl: string;
+    /** 認識老師 card (empty founderTitle + no sections hides it). */
+    founderTag: string;
+    founderRole: string;
+    founderHighlight: string;
+    founderSections: FounderSection[];
     learningMap: {
       title: string;
       subtitle: string;
@@ -480,8 +492,23 @@ export const defaultSiteContent: SiteContent = {
     ],
     founderQuote: '投資下一代的財商',
     founderName: '陳亮君（亮亮老師）',
-    founderLinkText: '背景介紹',
-    founderLinkUrl: 'https://live.e-staredu.com/#about',
+    founderLinkText: '看完整介紹',
+    founderLinkUrl: '',
+    founderTag: '兒童財商教育',
+    founderRole: '小管家兒童理財 創辦人',
+    founderHighlight: '金融業資產管理出身，現在用原創故事與遊戲，陪 5–12 歲的孩子認識金錢真正的價值。',
+    founderSections: [
+      {
+        label: '經歷',
+        color: 'blue',
+        items: '資產管理業：長期投資、資產管理顧問、市場拓展\n教育部核可教職員理財開課資格\n國軍理財講座講師\n上市櫃企業、科技業理財講師\n大專院校財經系理財講師',
+      },
+      {
+        label: '專長',
+        color: 'pink',
+        items: '原創兒童財商故事與遊戲設計\n兒童理財線上與實體課程\n成人理財',
+      },
+    ],
     enrollButtonText: '選課程 ↓',
     heroCtaText: '看現有課程 ↓',
     introText: '嗨，我是陳亮君（亮亮老師）',

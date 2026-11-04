@@ -6,10 +6,82 @@ import ParentFeedbackSection from '../components/ParentFeedbackSection';
 import { AudienceSection, FeedbackVisuals, PhotoStrip } from '../components/SignupInfoSections';
 import { useSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
-import { readableTextColor } from '../../lib/siteContent';
+import { readableTextColor, SiteContent } from '../../lib/siteContent';
 
 function bulletLines(text: string): string[] {
   return text.split('\n').map((line) => line.trim()).filter(Boolean);
+}
+
+const PILL: Record<string, string> = {
+  blue: 'bg-blue-800 text-white',
+  pink: 'bg-pink-400 text-white',
+  green: 'bg-emerald-600 text-white',
+  orange: 'bg-orange-500 text-white',
+};
+
+function FounderCard({ page }: { page: SiteContent['kidsPage'] }) {
+  const sections = (page.founderSections || []).filter((sec) => sec.label || sec.items.trim());
+  if (!page.founderRole && !page.founderHighlight && sections.length === 0) return null;
+  return (
+    <div id="teacher" className="scroll-mt-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-white rounded-[2.5rem] border-4 border-blue-900 shadow-[10px_10px_0_0_rgba(30,58,138,0.9)] px-6 sm:px-12 py-10 sm:py-14 grid md:grid-cols-[minmax(0,20rem)_1fr] gap-8 md:gap-12 items-start">
+        <div className="mx-auto w-full max-w-[18rem] md:max-w-none">
+          {page.introImageUrl && (
+            <div className="relative">
+              <div className="absolute inset-0 translate-x-3 translate-y-3 rounded-t-[999px] rounded-b-2xl bg-amber-400" />
+              <img
+                src={formatImageUrl(page.introImageUrl)}
+                alt="陳亮君 亮亮老師"
+                loading="lazy"
+                className="relative w-full aspect-[3/4] object-cover object-top rounded-t-[999px] rounded-b-2xl border-4 border-blue-900"
+              />
+            </div>
+          )}
+        </div>
+        <div className="space-y-6 min-w-0">
+          <div className="space-y-3">
+            {page.founderTag && (
+              <span className="inline-block px-5 py-1.5 rounded-full border-4 border-blue-900 bg-teal-200 text-blue-900 font-black text-base sm:text-lg">
+                {page.founderTag}
+              </span>
+            )}
+            <h2 className="text-3xl sm:text-4xl font-black text-blue-900">{page.founderName}</h2>
+            {page.founderRole && <p className="text-lg sm:text-xl font-bold text-slate-700">{page.founderRole}</p>}
+          </div>
+          {page.founderHighlight && (
+            <p className="rounded-3xl border-4 border-amber-400 bg-amber-50 px-5 py-4 text-lg sm:text-xl font-bold text-blue-900 leading-loose">
+              {page.founderHighlight}
+            </p>
+          )}
+          {sections.map((sec, i) => {
+            const items = sec.items.split('\n').map((t) => t.trim()).filter(Boolean);
+            return (
+              <div key={i} className="space-y-3">
+                {sec.label && (
+                  <span className={`inline-block px-5 py-1.5 rounded-full font-black text-base sm:text-lg tracking-widest ${PILL[sec.color] || PILL.blue}`}>
+                    {sec.label}
+                  </span>
+                )}
+                <ul className="space-y-2.5">
+                  {items.map((t, j) => (
+                    <li key={j} className="flex gap-3 text-lg sm:text-xl text-blue-900 leading-relaxed">
+                      <span className="mt-2.5 w-3.5 h-3.5 shrink-0 rounded-full bg-amber-400 border-[3px] border-blue-900" />
+                      <span>{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+          {page.founderLinkUrl && (
+            <a href={page.founderLinkUrl} className="inline-block text-base sm:text-lg font-bold text-blue-700 underline underline-offset-4">
+              更多背景介紹 ↗
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function KidsFinance() {
@@ -59,7 +131,7 @@ export default function KidsFinance() {
         </div>
       </div>
 
-      {/* 認識我是誰（短版，連到外部介紹） */}
+      {/* 認識我是誰（短版，點了跳到下方完整介紹） */}
       {page.introText && (
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
           <div className="flex items-center gap-4 bg-white/85 rounded-full pl-2 pr-6 py-2 shadow-md">
@@ -68,9 +140,9 @@ export default function KidsFinance() {
             )}
             <div className="text-left">
               <p className="text-lg sm:text-xl font-bold text-slate-800 leading-snug">{page.introText}</p>
-              {page.founderLinkUrl && (
-                <a href={page.founderLinkUrl} className="text-base sm:text-lg font-bold text-blue-700 underline underline-offset-4">
-                  {page.founderLinkText} ↗
+              {page.founderLinkText && (
+                <a href="#teacher" className="text-base sm:text-lg font-bold text-blue-700 underline underline-offset-4">
+                  {page.founderLinkText} ↓
                 </a>
               )}
             </div>
@@ -190,6 +262,9 @@ export default function KidsFinance() {
           )}
         </div>
       </div>
+
+      {/* 老師介紹：完整卡片 */}
+      <FounderCard page={page} />
 
       {/* 家長回饋：頭像在左、文字在右；LINE 截圖集中放下方 */}
       <ParentFeedbackSection

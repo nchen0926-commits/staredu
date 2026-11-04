@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Plus, Trash2, Save, Upload, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
-import { DEFAULT_KIDS_BG, resolveSiteContent, safeColor, SiteContent } from '../../lib/siteContent';
+import { DEFAULT_KIDS_BG, FounderSection, resolveSiteContent, safeColor, SiteContent } from '../../lib/siteContent';
 import { setSiteContent } from '../hooks/useSiteContent';
 import { formatImageUrl } from '../utils/imageUtils';
 import ImageUploadField from './ImageUploadField';
@@ -736,6 +736,48 @@ export default function SiteContentEditor({ onToast, onUnauthorized }: SiteConte
                 onUnauthorized={onUnauthorized}
               />
             </Field>
+          </div>
+          <div className="p-4 bg-white rounded-2xl border border-slate-200 space-y-3">
+            <p className="text-sm font-bold text-slate-800">老師介紹（頁面中段的完整介紹卡片，照片用上面的「老師照片」）</p>
+            <TextField label="標籤（照片下方的小膠囊）" value={kidsPage.founderTag} onChange={(v) => update((d) => { d.kidsPage.founderTag = v; })} />
+            <TextField label="頭銜" value={kidsPage.founderRole} onChange={(v) => update((d) => { d.kidsPage.founderRole = v; })} />
+            <Field label="重點一句話（黃色框框）">
+              <textarea rows={3} value={kidsPage.founderHighlight} onChange={(e) => update((d) => { d.kidsPage.founderHighlight = e.target.value; })} className={inputClass} />
+            </Field>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-800">介紹區塊（學歷、經歷、專長…想加幾個都可以）</span>
+              <AddButton onClick={() => update((d) => { d.kidsPage.founderSections.push({ label: '學歷', color: 'blue', items: '' }); })}>新增區塊</AddButton>
+            </div>
+            {kidsPage.founderSections.map((sec, idx) => (
+              <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-black px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg">#{idx + 1}</span>
+                  <div className="flex items-center gap-1">
+                    <OrderButtons
+                      index={idx}
+                      count={kidsPage.founderSections.length}
+                      onMove={(to) => update((d) => { const [m] = d.kidsPage.founderSections.splice(idx, 1); d.kidsPage.founderSections.splice(to, 0, m); })}
+                    />
+                    <RemoveButton onClick={() => update((d) => { d.kidsPage.founderSections.splice(idx, 1); })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <TextField label="區塊名稱（例：學歷）" value={sec.label} onChange={(v) => update((d) => { d.kidsPage.founderSections[idx].label = v; })} />
+                  <Field label="膠囊顏色">
+                    <select value={sec.color} onChange={(e) => update((d) => { d.kidsPage.founderSections[idx].color = e.target.value as FounderSection['color']; })} className={inputClass}>
+                      <option value="blue">藍色</option>
+                      <option value="pink">粉紅</option>
+                      <option value="green">綠色</option>
+                      <option value="orange">橘色</option>
+                    </select>
+                  </Field>
+                </div>
+                <Field label="內容（一行一項）">
+                  <textarea rows={5} value={sec.items} onChange={(e) => update((d) => { d.kidsPage.founderSections[idx].items = e.target.value; })} className={inputClass} />
+                </Field>
+              </div>
+            ))}
+            <TextField label="更多介紹連結（選填，例如你的活動頁；留空就不顯示）" value={kidsPage.founderLinkUrl} onChange={(v) => update((d) => { d.kidsPage.founderLinkUrl = v; })} />
           </div>
           <TextField label="相簿標題" value={kidsPage.classPhotosTitle} onChange={(v) => update((d) => { d.kidsPage.classPhotosTitle = v; })} />
           <div className="flex justify-end">
