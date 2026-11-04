@@ -25,7 +25,7 @@ function FounderCard({ page }: { page: SiteContent['kidsPage'] }) {
   return (
     <div id="teacher" className="scroll-mt-24 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="bg-white rounded-[2.5rem] border-4 border-blue-900 shadow-[10px_10px_0_0_rgba(30,58,138,0.9)] px-6 sm:px-12 py-10 sm:py-14 grid md:grid-cols-[minmax(0,20rem)_1fr] gap-8 md:gap-12 items-start">
-        <div className="mx-auto w-full max-w-[18rem] md:max-w-none">
+        <div className="mx-auto w-full max-w-[18rem] md:max-w-none md:sticky md:top-24">
           {page.introImageUrl && (
             <div className="relative">
               <div className="absolute inset-0 translate-x-3 translate-y-3 rounded-t-[999px] rounded-b-2xl bg-amber-400" />
